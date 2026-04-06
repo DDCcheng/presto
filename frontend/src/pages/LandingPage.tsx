@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 
-const LandPage =()=>{
+const LandingPage =()=>{
     const navigate=useNavigate();
 
    return (
@@ -29,4 +29,4 @@ const LandPage =()=>{
   );
 };
 
-export default LandPage;
+export default LandingPage

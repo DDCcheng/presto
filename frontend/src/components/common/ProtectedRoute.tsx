@@ -10,7 +10,7 @@ const ProtectedRouter =({children}:ProtectedRouteProps)=>{
     const {isAuthentication} =useAuth();
 
     if (!isAuthentication){
-        return <Navigate to='/login' replace/>;
+        return <Navigate to='/' replace/>;
     }
     return <>{children}</>;
 };

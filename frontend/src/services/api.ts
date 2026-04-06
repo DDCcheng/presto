@@ -35,9 +35,9 @@ export const login= (email:string , password: string)=>{
 }
 
 export const register= (email:string , password: string, name :string)=>{
-    return request<{token : string}>('/admin/auth/login','POST',{email,password,name});
+    return request<{token : string}>('/admin/auth/register','POST',{email,password,name});
 }
 
 export const logout= (token: string)=>{
-    return request<Object>('/admin/auth/login','POST',{},token);
+    return request<Object>('/admin/auth/logout','POST',{},token);
 }
