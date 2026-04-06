@@ -20,10 +20,8 @@ export const AuthProvider =({children}:{children:ReactNode})=>{
     localStorage.setItem('token',newToken);
  }
  const logout =()=>{
-    console.log('logout called, clearing token');
    setToken(null);
    localStorage.removeItem('token');
-   console.log('token cleared:', localStorage.getItem('token'));
  }
  const isAuthentication = token !==null;
 
