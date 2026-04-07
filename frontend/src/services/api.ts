@@ -1,20 +1,20 @@
 import backendConfig from '../../backend.config.json'
+import type{ ApiError, AuthResponse,LoginRequest,RegisterRequest } from '../types';
 
 const BASE_URL= `http://localhost:${backendConfig.BACKEND_PORT}`;
 
 const request=async <T>(
     endpoint: string,
     method: string,
-    body?: object,
+    body?: Record<string,unknown>,
     token?: string
     
 ): Promise<T>=>{
     const headers:Record<string,string>={
         'Content-Type':'application/json',
     };
-
     if (token) {
-        headers['Authorization'] =`Bear ${token}`;
+        headers['Authorization'] =`Bearer ${token}`;
     }
 
     const response =await fetch(`${BASE_URL}${endpoint}`,{
@@ -22,20 +22,20 @@ const request=async <T>(
         headers,
         body :body ? JSON.stringify(body) : undefined,
     });
-    const data=await response.json();
+    const data=await response.json() as ApiError | T;
     if(!response.ok){
-        throw new Error(data.error ||'Something went wrong');
+        throw new Error((data as ApiError).error ||'Something went wrong');
     }
 
     return data as T;
 }
 
-export const login= (email:string , password: string)=>{
-    return request<{token : string}>('/admin/auth/login','POST',{email,password});
+export const login= ({email , password}:LoginRequest)=>{
+    return request<AuthResponse>('/admin/auth/login','POST',{email,password});
 }
 
-export const register= (email:string , password: string, name :string)=>{
-    return request<{token : string}>('/admin/auth/register','POST',{email,password,name});
+export const register= ({email,password,name}:RegisterRequest)=>{
+    return request<AuthResponse>('/admin/auth/register','POST',{email,password,name});
 }
 
 export const logout= (token: string)=>{

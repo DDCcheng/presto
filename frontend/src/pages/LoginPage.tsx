@@ -22,7 +22,7 @@ const LoginPage =()=>{
         
         setLoading(true);
         try {
-            const data=await loginApi(email,password);
+            const data=await loginApi({email,password});
             login(data.token);
             navigate('/dashboard');
         }catch(error){
