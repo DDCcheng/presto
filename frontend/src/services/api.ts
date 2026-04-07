@@ -1,7 +1,11 @@
 import backendConfig from '../../backend.config.json'
 import type{ ApiError, AuthResponse,LoginRequest,RegisterRequest } from '../types';
 
-const BASE_URL= `http://localhost:${backendConfig.BACKEND_PORT}`;
+const isProduction =import.meta.env.PROD;
+
+const BASE_URL= isProduction 
+? 'https://z5666569-presto-be-deploy.vercel.app'
+: `http://localhost:${backendConfig.BACKEND_PORT}`;
 
 const request=async <T>(
     endpoint: string,
