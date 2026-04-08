@@ -14,7 +14,6 @@ export const AuthProvider =({children}:{children:ReactNode})=>{
  const [token,setToken]=useState<string | null>(
     localStorage.getItem('token')
  )   
-
  const login =(newToken :string)=>{
     setToken(newToken);
     localStorage.setItem('token',newToken);
@@ -25,6 +24,7 @@ export const AuthProvider =({children}:{children:ReactNode})=>{
  }
  const isAuthentication = token !==null;
 
+ 
  return <AuthContext.Provider value={{token,login,logout,isAuthentication}}>
     {children}
  </AuthContext.Provider>
