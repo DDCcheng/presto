@@ -1,5 +1,5 @@
 import backendConfig from '../../backend.config.json'
-import type{ ApiError, AuthResponse,LoginRequest,RegisterRequest } from '../types';
+import type{ ApiError, AuthResponse,LoginRequest,RegisterRequest,Store } from '../types';
 
 const isProduction =import.meta.env.PROD;
 
@@ -43,5 +43,13 @@ export const register= ({email,password,name}:RegisterRequest)=>{
 }
 
 export const logout= (token: string)=>{
-    return request<Object>('/admin/auth/logout','POST',{},token);
+    return request<Object>('/admin/auth/logout','POST',undefined,token);
+}
+
+export const getStore=(token : string)=>{
+    return request<{store:Store}>('/store','GET',undefined,token);
+}
+
+export const updateStore=(token :string, store:Store)=>{
+    return request<Store>('/store','PUT',{store},token);
 }

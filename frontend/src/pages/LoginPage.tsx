@@ -19,7 +19,6 @@ const LoginPage =()=>{
             setError('Please enter email and password');
             return ;
         }
-        
         setLoading(true);
         try {
             const data=await loginApi({email,password});
