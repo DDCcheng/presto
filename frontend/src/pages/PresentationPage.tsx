@@ -21,7 +21,6 @@ const PresentationPage = () => {
   const [newTitle, setNewTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
@@ -42,6 +41,28 @@ const PresentationPage = () => {
 
     fetchData();
   }, [token, id]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (!presentation) return;
+
+      if (e.key === "ArrowLeft" && currentSlideIndex > 0) {
+        setCurrentSlideIndex((i) => i - 1);
+      }
+
+      if (
+        e.key === "ArrowRight" &&
+        currentSlideIndex < presentation.slides.length - 1
+      ) {
+        setCurrentSlideIndex((i) => i + 1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [currentSlideIndex, presentation]);
+
+  if (!presentation) return <div>Loading...</div>;
 
   
 };
