@@ -76,7 +76,9 @@ const DashboardPage=()=>{
             )}
             <div className="grid gap-4 mt-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
                 {presentations.map((presentation) => (
-                    <div key={presentation.id} className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-md">
+                    <div key={presentation.id} 
+                    className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-md"
+                    onClick={() => navigate(`/presentation/${presentation.id}`)}>
                     <div className="aspect-2/1 bg-gray-200">
                         {presentation.thumbnail && (
                         <img src={presentation.thumbnail} className="w-full h-full object-cover" />
