@@ -64,6 +64,48 @@ const PresentationPage = () => {
 
   if (!presentation) return <div>Loading...</div>;
 
+  const saveSlides = async (slides: any[]) => {
+    if (!token) return;
+
+    const data = await getStoreApi(token);
+
+    const updated = data.store.presentations.map((p: Presentation) =>
+      p.id === id ? { ...p, slides } : p
+    );
+
+    await updateStoreApi(token, { presentations: updated });
+
+    setPresentation((prev) => prev && { ...prev, slides });
+  };
+
+  const handleAddSlide = async () => {
+    const newSlide = {
+      id: crypto.randomUUID(),
+      elements: [],
+      background: "",
+    };
+
+    const updatedSlides = [...presentation.slides, newSlide];
+
+    await saveSlides(updatedSlides);
+    setCurrentSlideIndex(updatedSlides.length - 1);
+  };
+
+  const handleDeleteSlide = async () => {
+    if (presentation.slides.length === 1) {
+      setError("Only one slide left. Delete the presentation instead.");
+      return;
+    }
+
+    const updatedSlides = presentation.slides.filter(
+      (_, index) => index !== currentSlideIndex
+    );
+
+    await saveSlides(updatedSlides);
+
+    setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
+  };
+
   
 };
 
