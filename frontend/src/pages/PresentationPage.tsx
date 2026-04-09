@@ -157,7 +157,7 @@ const PresentationPage = () => {
         </Button>
       </div>
 
-      <div className="relative border h-[400px] flex items-center justify-center bg-gray-100">
+      <div className="relative border h-100 flex items-center justify-center bg-gray-100">
         <div>
           <p>Slide ID: {slide.id}</p>
         </div>
@@ -241,7 +241,7 @@ const PresentationPage = () => {
             <div
             key={s.id}
             onClick={() => setCurrentSlideIndex(index)}
-            className={`min-w-[80px] h-[60px] border flex items-center justify-center cursor-pointer ${
+            className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${
                 index === currentSlideIndex
                 ? "border-blue-500 ring-2 ring-blue-400"
                 : "border-gray-300"
