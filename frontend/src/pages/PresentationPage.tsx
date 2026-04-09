@@ -106,6 +106,37 @@ const PresentationPage = () => {
     setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
+  const handleDeletePresentation = async () => {
+    if (!token) return;
+
+    const data = await getStoreApi(token);
+
+    const updated = data.store.presentations.filter(
+      (p: Presentation) => p.id !== id
+    );
+
+    await updateStoreApi(token, { presentations: updated });
+
+    navigate("/dashboard");
+  };
+
+  const handleTitleSave = async () => {
+    if (!token) return;
+
+    const data = await getStoreApi(token);
+
+    const updated = data.store.presentations.map((p: Presentation) =>
+      p.id === id ? { ...p, name: newTitle } : p
+    );
+
+    await updateStoreApi(token, { presentations: updated });
+
+    setPresentation((prev) => prev && { ...prev, name: newTitle });
+    setEditingTitle(false);
+  };
+
+  const slide = presentation.slides[currentSlideIndex];
+
   
 };
 
