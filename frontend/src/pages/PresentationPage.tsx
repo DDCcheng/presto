@@ -195,7 +195,62 @@ const PresentationPage = () => {
         )}
       </div>
 
-      
+      <div className="flex gap-3 mt-4">
+        <Button onClick={handleAddSlide}>+ Add Slide</Button>
+        <Button variant="destructive" onClick={handleDeleteSlide}>
+          Delete Slide
+        </Button>
+      </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow">
+            <p className="mb-4">Are you sure?</p>
+            <div className="flex gap-3">
+              <Button onClick={handleDeletePresentation}>Yes</Button>
+              <Button onClick={() => setShowDeleteConfirm(false)}>
+                No
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingTitle && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow">
+            <input
+              className="border p-2 mb-4 w-full"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+            />
+            <div className="flex gap-3">
+              <Button onClick={handleTitleSave}>Save</Button>
+              <Button onClick={() => setEditingTitle(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {error && (
+        <ErrorPopup message={error} onClose={() => setError(null)} />
+       )}
+       <div className="flex gap-2 mt-4 overflow-x-auto">
+        {presentation.slides.map((s, index) => (
+            <div
+            key={s.id}
+            onClick={() => setCurrentSlideIndex(index)}
+            className={`min-w-[80px] h-[60px] border flex items-center justify-center cursor-pointer ${
+                index === currentSlideIndex
+                ? "border-blue-500 ring-2 ring-blue-400"
+                : "border-gray-300"
+            }`}
+            >
+            <span className="text-sm">{index + 1}</span>
+            </div>
+        ))}
+        </div>
     </div>
   );
 };
