@@ -137,7 +137,67 @@ const PresentationPage = () => {
 
   const slide = presentation.slides[currentSlideIndex];
 
-  
+  return (
+    <div className="min-h-screen p-6 relative">
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={() => navigate("/dashboard")}>Back</Button>
+
+        <Button
+          variant="destructive"
+          onClick={() => setShowDeleteConfirm(true)}
+        >
+          Delete Presentation
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-3 mb-4">
+        <h2 className="text-xl font-bold">{presentation.name}</h2>
+        <Button size="sm" onClick={() => setEditingTitle(true)}>
+          Edit
+        </Button>
+      </div>
+
+      <div className="relative border h-[400px] flex items-center justify-center bg-gray-100">
+        <div>
+          <p>Slide ID: {slide.id}</p>
+        </div>
+
+        <div className="absolute bottom-2 left-2 text-sm text-gray-500">
+          {currentSlideIndex + 1}
+        </div>
+
+        {presentation.slides.length > 1 && (
+          <>
+            <button
+            disabled={currentSlideIndex === 0}
+            className={`absolute left-2 text-2xl ${
+                currentSlideIndex === 0
+                ? "opacity-30 cursor-not-allowed"
+                : "cursor-pointer hover:scale-110"
+            }`}
+            onClick={() => setCurrentSlideIndex((i) => i - 1)}
+            >
+            ←
+            </button>
+
+            <button
+            disabled={currentSlideIndex === presentation.slides.length - 1}
+            className={`absolute right-2 text-2xl ${
+                currentSlideIndex === presentation.slides.length - 1
+                ? "opacity-30 cursor-not-allowed"
+                : "cursor-pointer hover:scale-110"
+            }`}
+            onClick={() => setCurrentSlideIndex((i) => i + 1)}
+            >
+            →
+            </button>
+          </>
+        )}
+      </div>
+
+      
+    </div>
+  );
 };
 
 export default PresentationPage;
