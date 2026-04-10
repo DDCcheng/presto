@@ -18,17 +18,8 @@ export interface AuthResponse{
     token:string
 }
 
-export interface SildeElement{
-    id:string;
-    type: 'text'|'image'|'video'|'code';
-    position :{x:number,y:number};
-    size:{width:number,height:number};
-}
-
-export interface Silde{
-    id:string;
-    elements: SildeElement[];
-    background:string;
+export interface Store{
+    presentations:Presentation[];
 }
 
 export interface Presentation{
@@ -36,9 +27,47 @@ export interface Presentation{
     name:string;
     description:string;
     thumbnail: string;
-    slides:Silde[];
+    slides:Slide[];
 }
 
-export interface Store{
-    presentations:Presentation[];
+export interface Slide{
+    id:string;
+    elements: SlideElement[];
+    background:string;
 }
+
+interface BaseElement{
+    id:string;
+    type:'text' |'image' | 'video' |'code';
+    x:number;
+    y:number;
+    width:number;
+    height:number;
+    zIndex :number;
+}
+
+export interface TextElement extends BaseElement{
+    type:'text';
+    text: string;
+    fontSize: number;
+    color: string;
+}
+
+export interface ImageElement extends BaseElement{
+    type:'image';
+    src: string;
+    alt: string;//for alt tag
+}
+export interface VideoElement extends BaseElement { 
+    type:'video';
+    src:string;
+    auto: boolean;
+ }
+ export interface CodeElement extends BaseElement { 
+    type:'code';
+    code:string;
+    fontSize:number;
+    language:'c'|'python'|'javacript'
+  }
+
+export type SlideElement = TextElement | ImageElement | VideoElement | CodeElement;

@@ -1,13 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   getStore as getStoreApi,
   updateStore as updateStoreApi,
 } from "../services/api";
-import type { Presentation } from "../types";
+import type { Presentation, SlideElement } from "../types";
 import { Button } from "../components/ui/button";
 import ErrorPopup from "../components/common/ErrorPopup";
+import AddTextModal from "@/components/common/slides/AddTextModal";
 
 const PresentationPage = () => {
   const { id } = useParams();
@@ -20,21 +21,66 @@ const PresentationPage = () => {
   const [editingTitle, setEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [editingElement,setEditingElement]=useState<SlideElement | null>(null);
+
+  // slide elements
+  const [showAddText, setShowAddText] = useState(false);
+
+
+  const handleAddText=async(text: string, color: string, width: number, height: number, fontSize: number)=>{
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const maxZIndex = currentSlide.elements.length === 0
+      ? 0
+      : Math.max(...currentSlide.elements.map(el => el.zIndex));
+    const newTextElement = {
+      id: crypto.randomUUID(),
+      type:'text',
+      x:0,y:0,
+      width:width,
+      height:height,
+      text:text,
+      color:color,
+      fontSize:fontSize,
+      zIndex:maxZIndex+1 //max zindex of current element +1
+    };
+    const updatedElements = [...currentSlide.elements, newTextElement];
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setShowAddText(false)
+  };
+
+  const handleEditText =async (text: string, color: string, width: number, height: number, fontSize: number,x:number,y:number)=>{
+    const EditingTextElement = {
+      ...editingElement,
+      x,y,width,height,text,color,fontSize
+    };
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const updatedElements = currentSlide.elements.map((el) =>
+      el.id === editingElement?.id ? EditingTextElement : el
+    );
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setEditingElement(null)
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
-
       const data = await getStoreApi(token);
       const found = data.store.presentations.find(
         (p: Presentation) => p.id === id
       );
-
+      console.log('found:', JSON.stringify(found, null, 2));
       if (!found) {
         navigate("/dashboard");
         return;
       }
-
       setPresentation(found);
       setNewTitle(found.name);
     };
@@ -45,11 +91,10 @@ const PresentationPage = () => {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!presentation) return;
-
+      console.log('slides:', JSON.stringify(presentation.slides, null, 2));
       if (e.key === "ArrowLeft" && currentSlideIndex > 0) {
         setCurrentSlideIndex((i) => i - 1);
       }
-
       if (
         e.key === "ArrowRight" &&
         currentSlideIndex < presentation.slides.length - 1
@@ -57,7 +102,6 @@ const PresentationPage = () => {
         setCurrentSlideIndex((i) => i + 1);
       }
     };
-
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentSlideIndex, presentation]);
@@ -66,15 +110,11 @@ const PresentationPage = () => {
 
   const saveSlides = async (slides: any[]) => {
     if (!token) return;
-
     const data = await getStoreApi(token);
-
     const updated = data.store.presentations.map((p: Presentation) =>
       p.id === id ? { ...p, slides } : p
     );
-
     await updateStoreApi(token, { presentations: updated });
-
     setPresentation((prev) => prev && { ...prev, slides });
   };
 
@@ -84,9 +124,7 @@ const PresentationPage = () => {
       elements: [],
       background: "",
     };
-
     const updatedSlides = [...presentation.slides, newSlide];
-
     await saveSlides(updatedSlides);
     setCurrentSlideIndex(updatedSlides.length - 1);
   };
@@ -96,27 +134,20 @@ const PresentationPage = () => {
       setError("Only one slide left. Delete the presentation instead.");
       return;
     }
-
     const updatedSlides = presentation.slides.filter(
       (_, index) => index !== currentSlideIndex
     );
-
     await saveSlides(updatedSlides);
-
     setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
   const handleDeletePresentation = async () => {
     if (!token) return;
-
     const data = await getStoreApi(token);
-
     const updated = data.store.presentations.filter(
       (p: Presentation) => p.id !== id
     );
-
     await updateStoreApi(token, { presentations: updated });
-
     navigate("/dashboard");
   };
 
@@ -141,7 +172,6 @@ const PresentationPage = () => {
     <div className="min-h-screen p-6 relative">
       <div className="flex justify-between items-center mb-4">
         <Button onClick={() => navigate("/dashboard")}>Back</Button>
-
         <Button
           variant="destructive"
           onClick={() => setShowDeleteConfirm(true)}
@@ -157,18 +187,51 @@ const PresentationPage = () => {
         </Button>
       </div>
 
+
       <div className="relative border h-100 flex items-center justify-center bg-gray-100">
-        <div>
-          <p>Slide ID: {slide.id}</p>
+        <div className="absolute inset-0">
+          {slide.elements.map((el) => (
+            <div
+              key={el.id}
+              style={{
+                position: 'absolute',
+                left: `${el.x}%`,
+                top: `${el.y}%`,
+                width: `${el.width}%`,
+                height: `${el.height}%`,
+                zIndex: el.zIndex,
+              }}
+              onContextMenu={async(e)=>{
+                e.preventDefault();
+                const updatedSlide = slide.elements.filter(
+                  (element) => element.id !== el.id
+                );
+                const updatedSlides=presentation.slides.map((s,index)=>{
+                  return index===currentSlideIndex ? {...s,elements:updatedSlide}:s;
+                })
+                await saveSlides(updatedSlides);
+              }}
+              onDoubleClick={()=> setEditingElement(el)}
+            >
+            {el.type === 'text' && (
+              <div 
+              className="w-full h-full border border-gray-300 text-left overflow-auto whitespace-normal"
+              style={{
+                fontSize: `${el.fontSize}em`,
+                color:el.color
+              }}
+              >
+                {el.text}
+              </div>
+            )}
+            </div>
+        ))}
         </div>
-
-        <div className="absolute bottom-2 left-2 text-sm text-gray-500">
-          {currentSlideIndex + 1}
-        </div>
-
+        
         {presentation.slides.length > 1 && (
-          <>
+          <React.Fragment>
             <button
+            key="arrow-left"
             disabled={currentSlideIndex === 0}
             className={`absolute left-2 text-2xl ${
                 currentSlideIndex === 0
@@ -179,8 +242,8 @@ const PresentationPage = () => {
             >
             ←
             </button>
-
             <button
+            key="arrow-right"
             disabled={currentSlideIndex === presentation.slides.length - 1}
             className={`absolute right-2 text-2xl ${
                 currentSlideIndex === presentation.slides.length - 1
@@ -191,16 +254,32 @@ const PresentationPage = () => {
             >
             →
             </button>
-          </>
+          </React.Fragment>
         )}
       </div>
 
       <div className="flex gap-3 mt-4">
         <Button onClick={handleAddSlide}>+ Add Slide</Button>
+        <Button onClick={()=>{setShowAddText(true)}}>+ Add Text</Button>
         <Button variant="destructive" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
       </div>
+
+      {showAddText && (
+        <AddTextModal
+          onClose={() => setShowAddText(false)}
+          onSubmit={handleAddText}
+        />
+      )}
+
+      {editingElement && editingElement.type === 'text' && (
+        <AddTextModal
+          onClose={() => setEditingElement(null)}
+          onSubmit={handleEditText}
+          initialData={editingElement}
+        />
+      )}
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
