@@ -61,7 +61,7 @@ export interface ImageElement extends BaseElement{
 export interface VideoElement extends BaseElement { 
     type:'video';
     src:string;
-    auto: boolean;
+    autoplay: boolean;
  }
  export interface CodeElement extends BaseElement { 
     type:'code';

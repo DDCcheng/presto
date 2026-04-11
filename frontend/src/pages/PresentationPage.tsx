@@ -9,6 +9,22 @@ import type { Presentation, SlideElement } from "../types";
 import { Button } from "../components/ui/button";
 import ErrorPopup from "../components/common/ErrorPopup";
 import AddTextModal from "@/components/common/slides/AddTextModal";
+import AddImageModal from "@/components/common/slides/AddImageModal";
+import AddVideoModal from "@/components/common/slides/AddVideoModal";
+
+
+//plugin for code recongnising
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import python from 'highlight.js/lib/languages/python';
+import c from 'highlight.js/lib/languages/c';
+import 'highlight.js/styles/github.css';
+import AddCodeModal from "@/components/common/slides/AddCodeModal";
+
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('c', c);
+
 
 const PresentationPage = () => {
   const { id } = useParams();
@@ -25,8 +41,135 @@ const PresentationPage = () => {
 
   // slide elements
   const [showAddText, setShowAddText] = useState(false);
+  const [showAddImage,setShowAddImage]=useState(false);
+  const [showAddVideo,setShowAddVideo]=useState(false);
+  const [showAddCode,setShowAddCode]=useState(false);
+
+  //code element logic
+  const handleAddCode=async(width: number, height: number, code: string,fontSize:number)=>{
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const maxZIndex = currentSlide.elements.length === 0
+      ? 0
+      : Math.max(...currentSlide.elements.map(el => el.zIndex));
+    const newCodeElement = {
+      id: crypto.randomUUID(),
+      type:'code',
+      x:0,y:0,
+      width:width,
+      height:height,
+      code:code,
+      fontSize:fontSize,
+      zIndex:maxZIndex+1 //max zindex of current element +1
+    };
+    const updatedElements = [...currentSlide.elements, newCodeElement];
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setShowAddCode(false)
+  };
+  const handleEditCode =async (width: number, height: number, code: string,fontSize:number,x:number,y:number)=>{
+    const EditingVideoElement = {
+      ...editingElement,
+      x,y,width,height,code,fontSize
+    };
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const updatedElements = currentSlide.elements.map((el) =>
+      el.id === editingElement?.id ? EditingVideoElement : el
+    );
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setEditingElement(null)
+  };
+
+  //video element logic
+  const handleAddVideo=async(width: number, height: number, src: string,autoplay:boolean)=>{
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const maxZIndex = currentSlide.elements.length === 0
+      ? 0
+      : Math.max(...currentSlide.elements.map(el => el.zIndex));
+    const newVideoElement = {
+      id: crypto.randomUUID(),
+      type:'video',
+      x:0,y:0,
+      width:width,
+      height:height,
+      src:src,
+      autoplay:autoplay,
+      zIndex:maxZIndex+1 //max zindex of current element +1
+    };
+    const updatedElements = [...currentSlide.elements, newVideoElement];
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setShowAddVideo(false)
+  };
+  const handleEditVideo =async (width: number, height: number, src: string,autoplay:boolean,x:number,y:number)=>{
+    const EditingVideoElement = {
+      ...editingElement,
+      x,y,width,height,src,autoplay
+    };
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const updatedElements = currentSlide.elements.map((el) =>
+      el.id === editingElement?.id ? EditingVideoElement : el
+    );
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setEditingElement(null)
+  };
+
+  //image element logic
+  const handleAddImage=async(width: number, height: number, src: string,alt:string)=>{
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const maxZIndex = currentSlide.elements.length === 0
+      ? 0
+      : Math.max(...currentSlide.elements.map(el => el.zIndex));
+    const newImageElement = {
+      id: crypto.randomUUID(),
+      type:'image',
+      x:0,y:0,
+      width:width,
+      height:height,
+      src:src,
+      alt:alt,
+      zIndex:maxZIndex+1 //max zindex of current element +1
+    };
+    const updatedElements = [...currentSlide.elements, newImageElement];
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setShowAddImage(false)
+  };
+  const handleEditImage =async (width: number, height: number, src: string,alt:string,x:number,y:number)=>{
+    const EditingImageElement = {
+      ...editingElement,
+      x,y,width,height,src,alt
+    };
+    if(!presentation) return;
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const updatedElements = currentSlide.elements.map((el) =>
+      el.id === editingElement?.id ? EditingImageElement : el
+    );
+    const updatedSlides=presentation.slides.map((s,index)=>{
+      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    })
+    await saveSlides(updatedSlides);
+    setEditingElement(null)
+  };
 
 
+  //text element logic
   const handleAddText=async(text: string, color: string, width: number, height: number, fontSize: number)=>{
     if(!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -51,7 +194,6 @@ const PresentationPage = () => {
     await saveSlides(updatedSlides);
     setShowAddText(false)
   };
-
   const handleEditText =async (text: string, color: string, width: number, height: number, fontSize: number,x:number,y:number)=>{
     const EditingTextElement = {
       ...editingElement,
@@ -69,6 +211,7 @@ const PresentationPage = () => {
     setEditingElement(null)
   };
 
+  //effect function
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
@@ -76,7 +219,6 @@ const PresentationPage = () => {
       const found = data.store.presentations.find(
         (p: Presentation) => p.id === id
       );
-      console.log('found:', JSON.stringify(found, null, 2));
       if (!found) {
         navigate("/dashboard");
         return;
@@ -91,7 +233,6 @@ const PresentationPage = () => {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!presentation) return;
-      console.log('slides:', JSON.stringify(presentation.slides, null, 2));
       if (e.key === "ArrowLeft" && currentSlideIndex > 0) {
         setCurrentSlideIndex((i) => i - 1);
       }
@@ -224,6 +365,40 @@ const PresentationPage = () => {
                 {el.text}
               </div>
             )}
+
+            {el.type === 'image' && (
+              <img
+                src={el.src}
+                alt={el.alt}
+                className="w-full h-full object-contain"
+              />
+            )}
+
+            {el.type === 'video' && (
+              <iframe
+                src={`${el.src}${el.autoplay ? '?autoplay=1' : ''}`}
+                className="w-full h-full"
+                allow="autoplay"
+                title="video"
+                style={{ pointerEvents: 'none' }}
+              />
+            )}
+
+            {el.type === 'code' && (() => {
+              const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
+              return (
+                <pre
+                  className="w-full h-full border border-gray-300 overflow-auto m-0"
+                  style={{ fontSize: `${el.fontSize}em`, whiteSpace: 'pre' }}
+                >
+                  <code
+                    className={`hljs language-${highlighted.language}`}
+                    dangerouslySetInnerHTML={{ __html: highlighted.value }}
+                  />
+                </pre>
+              );
+            })()}
+
             </div>
         ))}
         </div>
@@ -261,6 +436,9 @@ const PresentationPage = () => {
       <div className="flex gap-3 mt-4">
         <Button onClick={handleAddSlide}>+ Add Slide</Button>
         <Button onClick={()=>{setShowAddText(true)}}>+ Add Text</Button>
+        <Button onClick={()=>{setShowAddImage(true)}}>+ Add image</Button>
+        <Button onClick={()=>{setShowAddVideo(true)}}>+ Add Video</Button>
+        <Button onClick={()=>{setShowAddCode(true)}}>+ Add Code</Button>
         <Button variant="destructive" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
@@ -277,6 +455,48 @@ const PresentationPage = () => {
         <AddTextModal
           onClose={() => setEditingElement(null)}
           onSubmit={handleEditText}
+          initialData={editingElement}
+        />
+      )}
+
+      {showAddImage && (
+        <AddImageModal
+          onClose={() => setShowAddImage(false)}
+          onSubmit={handleAddImage}
+        />
+      )}
+      {editingElement && editingElement.type === 'image' && (
+        <AddImageModal
+          onClose={() => setEditingElement(null)}
+          onSubmit={handleEditImage}
+          initialData={editingElement}
+        />
+      )}
+
+      {showAddVideo && (
+        <AddVideoModal
+          onClose={() => setShowAddVideo(false)}
+          onSubmit={handleAddVideo}
+        />
+      )}
+      {editingElement && editingElement.type === 'video' && (
+        <AddVideoModal
+          onClose={() => setEditingElement(null)}
+          onSubmit={handleEditVideo}
+          initialData={editingElement}
+        />
+      )}
+
+      {showAddCode && (
+        <AddCodeModal
+          onClose={() => setShowAddCode(false)}
+          onSubmit={handleAddCode}
+        />
+      )}
+      {editingElement && editingElement.type === 'code' && (
+        <AddCodeModal
+          onClose={() => setEditingElement(null)}
+          onSubmit={handleEditCode}
           initialData={editingElement}
         />
       )}
