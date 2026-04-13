@@ -129,7 +129,25 @@ const PreviewPage = () => {
         ))}
       </div>
 
-      
+      <button
+        className="absolute left-5 top-1/2 text-black text-3xl"
+        disabled={currentSlideIndex === 0}
+        onClick={() => setCurrentSlideIndex(i => i - 1)}
+      >
+        ←
+      </button>
+
+      <button
+        className="absolute right-5 top-1/2 text-black text-3xl"
+        disabled={currentSlideIndex === presentation.slides.length - 1}
+        onClick={() => setCurrentSlideIndex(i => i + 1)}
+      >
+        →
+      </button>
+
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-black">
+        {currentSlideIndex + 1} / {presentation.slides.length}
+      </div>
 
     </div>
   );
