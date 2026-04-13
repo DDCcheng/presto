@@ -53,7 +53,18 @@ const PresentationPage = () => {
     startMouseY: number;
     startElX: number;     
     startElY: number;
-} | null>(null);
+  } | null>(null);
+  //resizing part
+  const resizeInfo = useRef<{
+    elementId: string;
+    corner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    startMouseX: number; 
+    startMouseY: number;
+    startElX: number;
+    startElY: number;
+    startElW: number;
+    startElH: number;
+  } | null>(null);
 
   //code element logic
   const handleAddCode=async(width: number, height: number, code: string,fontSize:number)=>{
@@ -239,7 +250,7 @@ const PresentationPage = () => {
 
     fetchData();
   }, [token, id]);
-
+  //add arrow function
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!presentation) return;
@@ -256,45 +267,93 @@ const PresentationPage = () => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentSlideIndex, presentation]);
-
+  //add element moving logic
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-    if (!dragInfo.current || !slideRef.current || !presentation) return;
-    e.preventDefault();
-    const rect = slideRef.current.getBoundingClientRect();
+      if ( !slideRef.current || !presentation) return;
+      e.preventDefault();
+      const rect = slideRef.current.getBoundingClientRect();
+      const currentSlide = presentation.slides[currentSlideIndex];
+
+      if(dragInfo.current){
+        const deltaX = ((e.clientX - dragInfo.current.startMouseX) / rect.width) * 100;
+        const deltaY = ((e.clientY - dragInfo.current.startMouseY) / rect.height) * 100;
+        // new start= old one + moving distance
+        let newX = dragInfo.current.startElX + deltaX;
+        let newY = dragInfo.current.startElY + deltaY;
+        // find current element,and get width and height from it
+        const el = currentSlide.elements.find(e => e.id === dragInfo.current!.elementId);
+        if (!el) return;
+        // boundary limits
+        newX = Math.max(0, Math.min(newX, 100 - el.width));
+        newY = Math.max(0, Math.min(newY, 100 - el.height));
+        // update presentation
+        const updatedElements = currentSlide.elements.map(element =>
+          element.id === dragInfo.current!.elementId
+            ? { ...element, x: newX, y: newY }
+            : element
+        );
+        const updatedSlides = presentation.slides.map((s, index) =>
+          index === currentSlideIndex ? { ...s, elements: updatedElements } : s
+        );
+        setPresentation(prev => prev && { ...prev, slides: updatedSlides });
+      };
+      // resizing part
+      if (resizeInfo.current) {
+        const deltaX = ((e.clientX - resizeInfo.current.startMouseX) / rect.width) * 100;
+        const deltaY = ((e.clientY - resizeInfo.current.startMouseY) / rect.height) * 100;
+
+        let newX = resizeInfo.current.startElX;
+        let newY = resizeInfo.current.startElY;
+        let newW = resizeInfo.current.startElW;
+        let newH = resizeInfo.current.startElH;
+
+        const corner = resizeInfo.current.corner;
+
+        if (corner === 'bottom-right') {
+          newW += deltaX;
+          newH += deltaY;
+        } else if (corner === 'bottom-left') {
+          newX += deltaX;
+          newW -= deltaX;
+          newH += deltaY;
+        } else if (corner === 'top-right') {
+          newY += deltaY;
+          newW += deltaX;
+          newH -= deltaY;
+        } else if (corner === 'top-left') {
+          newX += deltaX;
+          newY += deltaY;
+          newW -= deltaX;
+          newH -= deltaY;
+        }
+        // min 1%
+        newW = Math.max(1, newW);
+        newH = Math.max(1, newH);
+        // boundary limit
+        newX = Math.max(0, newX);
+        newY = Math.max(0, newY);
+        if (newX + newW > 100) newW = 100 - newX;
+        if (newY + newH > 100) newH = 100 - newY;
+        const updatedElements = currentSlide.elements.map(element =>
+          element.id === resizeInfo.current!.elementId
+            ? { ...element, x: newX, y: newY, width: newW, height: newH }
+            : element
+        );
+        const updatedSlides = presentation.slides.map((s, index) =>
+          index === currentSlideIndex ? { ...s, elements: updatedElements } : s
+        );
+        setPresentation(prev => prev && { ...prev, slides: updatedSlides });
+        return;
+      }
+    }
+
     
     // how many pixels mouse moved
-    const deltaX = ((e.clientX - dragInfo.current.startMouseX) / rect.width) * 100;
-    const deltaY = ((e.clientY - dragInfo.current.startMouseY) / rect.height) * 100;
-    
-    // new start= old one + moving distance
-    let newX = dragInfo.current.startElX + deltaX;
-    let newY = dragInfo.current.startElY + deltaY;
-    
-    // find current element,and get width and height from it
-    const currentSlide = presentation.slides[currentSlideIndex];
-    const el = currentSlide.elements.find(e => e.id === dragInfo.current!.elementId);
-    if (!el) return;
-    
-    // boudary limits
-    newX = Math.max(0, Math.min(newX, 100 - el.width));
-    newY = Math.max(0, Math.min(newY, 100 - el.height));
-    
-    // update presentation
-    const updatedElements = currentSlide.elements.map(element =>
-      element.id === dragInfo.current!.elementId
-        ? { ...element, x: newX, y: newY }
-        : element
-    );
-    const updatedSlides = presentation.slides.map((s, index) =>
-      index === currentSlideIndex ? { ...s, elements: updatedElements } : s
-    );
-    setPresentation(prev => prev && { ...prev, slides: updatedSlides });
-    };
-
     const handleMouseUp = () => {
-      if (!dragInfo.current) return ;
+      if (!dragInfo.current && !resizeInfo.current) return ;
       dragInfo.current=null;
+      resizeInfo.current=null;
       if (presentation){
         saveSlides(presentation.slides);
       }
@@ -433,7 +492,7 @@ const PresentationPage = () => {
             >
             {el.type === 'text' && (
               <div 
-              className="w-full h-full border border-gray-300 text-left overflow-auto whitespace-normal"
+              className="w-full h-full border border-gray-300  overflow-auto whitespace-normal text-center"
               style={{
                 fontSize: `${el.fontSize}em`,
                 color:el.color
@@ -480,8 +539,7 @@ const PresentationPage = () => {
             {selectedElementId==el.id &&(
               <>
                 <div 
-                  style={
-                    {
+                  style={{
                       position:"absolute",
                       top:-2.5,
                       left:-2.5,
@@ -489,11 +547,25 @@ const PresentationPage = () => {
                       height:5,
                       backgroundColor:"black",
                       cursor:"nwse-resize"
-                    }
-                  }></div>
+                    }}
+                  onMouseDown={(e)=>{
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (selectedElementId !==el.id) return ;
+                    resizeInfo.current = {
+                      elementId: el.id,
+                      corner:'top-left',
+                      startMouseX: e.clientX,    
+                      startMouseY: e.clientY,
+                      startElX: el.x,            
+                      startElY: el.y,
+                      startElH:el.height,
+                      startElW:el.width,
+                    };
+                  }}
+                  ></div>
                 <div 
-                  style={
-                    {
+                  style={{
                       position:"absolute",
                       top:-2.5,
                       right:-2.5,
@@ -501,8 +573,23 @@ const PresentationPage = () => {
                       height:5,
                       backgroundColor:"black",
                       cursor:"nwse-resize"
-                    }
-                  }></div>
+                    }}
+                  onMouseDown={(e)=>{
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (selectedElementId !==el.id) return ;
+                    resizeInfo.current = {
+                      elementId: el.id,
+                      corner:'top-right',
+                      startMouseX: e.clientX,    
+                      startMouseY: e.clientY,
+                      startElX: el.x,            
+                      startElY: el.y,
+                      startElH:el.height,
+                      startElW:el.width,
+                    };
+                  }}
+                  ></div>
                 <div 
                   style={
                     {
@@ -513,8 +600,23 @@ const PresentationPage = () => {
                       height:5,
                       backgroundColor:"black",
                       cursor:"nwse-resize"
-                    }
-                  }></div>
+                    }}
+                  onMouseDown={(e)=>{
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (selectedElementId !==el.id) return ;
+                    resizeInfo.current = {
+                      elementId: el.id,
+                      corner:'bottom-left',
+                      startMouseX: e.clientX,    
+                      startMouseY: e.clientY,
+                      startElX: el.x,            
+                      startElY: el.y,
+                      startElH:el.height,
+                      startElW:el.width,
+                    };
+                  }}
+                    ></div>
                 <div 
                   style={
                     {
@@ -525,8 +627,23 @@ const PresentationPage = () => {
                       height:5,
                       backgroundColor:"black",
                       cursor:"nwse-resize"
-                    }
-                  }></div>
+                    }}
+                  onMouseDown={(e)=>{
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (selectedElementId !==el.id) return ;
+                    resizeInfo.current = {
+                      elementId: el.id,
+                      corner:'bottom-right',
+                      startMouseX: e.clientX,    
+                      startMouseY: e.clientY,
+                      startElX: el.x,            
+                      startElY: el.y,
+                      startElH:el.height,
+                      startElW:el.width,
+                    };
+                  }}
+                    ></div>
               </>
             )
           }
