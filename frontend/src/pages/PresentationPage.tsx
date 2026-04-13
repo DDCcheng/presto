@@ -488,7 +488,6 @@ const PresentationPage = () => {
       </div>
     </div>
 
-
       <div className="relative border h-100 flex items-center justify-center bg-gray-100">
         <div className="absolute inset-0" onClick={()=>setSelectedElementId(null)} ref={slideRef} style={getBackgroundStyle()}>
           {slide.elements.map((el) => (

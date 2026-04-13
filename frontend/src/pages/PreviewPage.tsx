@@ -1,15 +1,31 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getStore as getStoreApi } from "../services/api";
 import type { Presentation } from "../types";
+
 
 const PreviewPage = () => {
   const { id } = useParams();
   const { token } = useAuth();
 
   const [presentation, setPresentation] = useState<Presentation | null>(null);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+const urlSlide = Number(searchParams.get("slide")) || 0;
+const [currentSlideIndex, setCurrentSlideIndex] = useState(urlSlide);
+
+const goToSlide = (index: number) => {
+  if (!presentation) return;
+
+  const safeIndex = Math.max(
+    0,
+    Math.min(index, presentation.slides.length - 1)
+  );
+
+  setCurrentSlideIndex(safeIndex);
+  setSearchParams({ slide: String(safeIndex) });
+};
 
   const fetchData = async () => {
     if (!token) return;
@@ -32,16 +48,29 @@ const PreviewPage = () => {
       if (!presentation) return;
 
       if (e.key === "ArrowLeft" && currentSlideIndex > 0) {
-        setCurrentSlideIndex(i => i - 1);
+        goToSlide(currentSlideIndex - 1);
       }
       if (e.key === "ArrowRight" && currentSlideIndex < presentation.slides.length - 1) {
-        setCurrentSlideIndex(i => i + 1);
+        goToSlide(currentSlideIndex + 1);
       }
     };
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentSlideIndex, presentation]);
+
+  useEffect(() => {
+    if (!presentation) return;
+
+    const urlSlide = Number(searchParams.get("slide")) || 0;
+
+    const safeIndex = Math.max(
+        0,
+        Math.min(urlSlide, presentation.slides.length - 1)
+    );
+
+    setCurrentSlideIndex(safeIndex);
+    }, [presentation]);
 
 
   if (!presentation) return <div>Loading...</div>;
@@ -132,7 +161,7 @@ const PreviewPage = () => {
       <button
         className="absolute left-5 top-1/2 text-black text-3xl"
         disabled={currentSlideIndex === 0}
-        onClick={() => setCurrentSlideIndex(i => i - 1)}
+        onClick={() => goToSlide(currentSlideIndex - 1)}
       >
         ←
       </button>
@@ -140,7 +169,7 @@ const PreviewPage = () => {
       <button
         className="absolute right-5 top-1/2 text-black text-3xl"
         disabled={currentSlideIndex === presentation.slides.length - 1}
-        onClick={() => setCurrentSlideIndex(i => i + 1)}
+        onClick={() => goToSlide(currentSlideIndex + 1)}
       >
         →
       </button>
