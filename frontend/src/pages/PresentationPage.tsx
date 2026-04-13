@@ -11,7 +11,8 @@ import ErrorPopup from "../components/common/ErrorPopup";
 import AddTextModal from "@/components/common/slides/AddTextModal";
 import AddImageModal from "@/components/common/slides/AddImageModal";
 import AddVideoModal from "@/components/common/slides/AddVideoModal";
-
+import AddBackgroundModal from "@/components/common/slides/AddBackGroundModal";
+import type{ BackgroundStyle } from "../types";
 
 //plugin for code recongnising
 import hljs from 'highlight.js/lib/core';
@@ -45,6 +46,33 @@ const PresentationPage = () => {
   const [showAddImage,setShowAddImage]=useState(false);
   const [showAddVideo,setShowAddVideo]=useState(false);
   const [showAddCode,setShowAddCode]=useState(false);
+  const [showBackground,setShowBackground]=useState(false);
+
+  const handleSlideBackgroundChange = async (bg: BackgroundStyle | '') => {
+    if (!presentation) return;
+    const updatedSlides = presentation.slides.map((s, index) =>
+      index === currentSlideIndex ? { ...s, background: bg } : s
+    );
+    await saveSlides(updatedSlides);
+  };
+  const handleDefaultBackgroundChange = async (bg: BackgroundStyle) => {
+    if (!token || !presentation) return;
+    const data = await getStoreApi(token);
+    const updated = data.store.presentations.map((p: Presentation) =>
+      p.id === id ? { ...p, defaultBackground: bg } : p
+    );
+    await updateStoreApi(token, { presentations: updated });
+    setPresentation(prev => prev && { ...prev, defaultBackground: bg });
+  };
+  const getBackgroundStyle = () => {
+    if(!presentation) return;
+    const bg = slide.background || presentation.defaultBackground;
+    if (!bg) return {};
+    if (bg.type === 'solid') return { backgroundColor: bg.color };
+    if (bg.type === 'gradient') return { background: `linear-gradient(to right, ${bg.gradientStart}, ${bg.gradientEnd})` };
+    if (bg.type === 'image') return { backgroundImage: `url(${bg.image})`, backgroundSize: 'cover' };
+    return {};
+  };
 
   //moving part
   const dragInfo = useRef<{
@@ -451,7 +479,7 @@ const PresentationPage = () => {
 
 
       <div className="relative border h-100 flex items-center justify-center bg-gray-100">
-        <div className="absolute inset-0" onClick={()=>setSelectedElementId(null)} ref={slideRef}>
+        <div className="absolute inset-0" onClick={()=>setSelectedElementId(null)} ref={slideRef} style={getBackgroundStyle()}>
           {slide.elements.map((el) => (
             <div
               key={el.id}
@@ -690,6 +718,7 @@ const PresentationPage = () => {
         <Button onClick={()=>{setShowAddImage(true)}}>+ Add image</Button>
         <Button onClick={()=>{setShowAddVideo(true)}}>+ Add Video</Button>
         <Button onClick={()=>{setShowAddCode(true)}}>+ Add Code</Button>
+        <Button onClick={()=>{setShowBackground(true)}}>+ Add background</Button>
         <Button variant="destructive" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
@@ -735,6 +764,16 @@ const PresentationPage = () => {
           onClose={() => setEditingElement(null)}
           onSubmit={handleEditVideo}
           initialData={editingElement}
+        />
+      )}
+
+      {showBackground && (
+        <AddBackgroundModal
+          onClose={() => setShowBackground(false)}
+          slideBackground={slide.background}
+          defaultBackground={presentation.defaultBackground}
+          onSlideBackgroundChange={handleSlideBackgroundChange}
+          onDefaultBackgroundChange={handleDefaultBackgroundChange}
         />
       )}
 

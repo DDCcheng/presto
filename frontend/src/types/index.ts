@@ -28,12 +28,21 @@ export interface Presentation{
     description:string;
     thumbnail: string;
     slides:Slide[];
+    defaultBackground:BackgroundStyle;
+}
+
+export interface BackgroundStyle {
+  type: 'solid' | 'gradient' | 'image';
+  color?: string;           // solid 
+  gradientStart?: string;   // gradient 
+  gradientEnd?: string;
+  image?: string;           // image :URL or base64
 }
 
 export interface Slide{
     id:string;
     elements: SlideElement[];
-    background:string;
+    background:BackgroundStyle | '';
 }
 
 interface BaseElement{
