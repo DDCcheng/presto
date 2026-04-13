@@ -94,9 +94,37 @@ const PreviewPage = () => {
               zIndex: el.zIndex,
             }}
           >
-            
+            {el.type === "text" && (
+              <div
+                className="w-full h-full"
+                style={{
+                  fontSize: `${el.fontSize}em`,
+                  color: el.color,
+                  fontFamily: el.fontFamily,
+                }}
+              >
+                {el.text}
+              </div>
+            )}
 
-            
+            {el.type === "image" && (
+              <img src={el.src} alt={el.alt} className="w-full h-full object-contain" />
+            )}
+
+            {el.type === "video" && (
+              <iframe
+                src={el.src}
+                className="w-full h-full"
+                title="video"
+                allow="autoplay"
+              />
+            )}
+
+            {el.type === "code" && (
+              <pre className="w-full h-full overflow-auto">
+                <code>{el.code}</code>
+              </pre>
+            )}
           </div>
         ))}
       </div>
