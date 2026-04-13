@@ -191,7 +191,7 @@ const PresentationPage = () => {
 
 
   //text element logic
-  const handleAddText=async(text: string, color: string, width: number, height: number, fontSize: number)=>{
+  const handleAddText=async(text: string, color: string, width: number, height: number, fontSize: number,x :number,y:number,fontFamily:string)=>{
     if(!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
@@ -206,6 +206,7 @@ const PresentationPage = () => {
       text:text,
       color:color,
       fontSize:fontSize,
+      fontFamily:fontFamily,
       zIndex:maxZIndex+1 //max zindex of current element +1
     };
     const updatedElements = [...currentSlide.elements, newTextElement];
@@ -215,10 +216,10 @@ const PresentationPage = () => {
     await saveSlides(updatedSlides);
     setShowAddText(false)
   };
-  const handleEditText =async (text: string, color: string, width: number, height: number, fontSize: number,x:number,y:number)=>{
+  const handleEditText =async (text: string, color: string, width: number, height: number, fontSize: number,x:number,y:number,fontFamily:string)=>{
     const EditingTextElement = {
       ...editingElement,
-      x,y,width,height,text,color,fontSize
+      x,y,width,height,text,color,fontSize,fontFamily
     };
     if(!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -495,7 +496,8 @@ const PresentationPage = () => {
               className="w-full h-full border border-gray-300  overflow-auto whitespace-normal text-center"
               style={{
                 fontSize: `${el.fontSize}em`,
-                color:el.color
+                color:el.color,
+                fontFamily:el.fontFamily,
               }}
               >
                 {el.text}
@@ -795,7 +797,7 @@ const PresentationPage = () => {
                 : "border-gray-300"
             }`}
             >
-            <span className="text-sm">{index + 1}</span>
+            <span className="text-sm">{`Slide ${index+1}`}</span>
             </div>
         ))}
         </div>
