@@ -462,22 +462,31 @@ const PresentationPage = () => {
 
   return (
     <div className="min-h-screen p-6 relative">
-      <div className="flex justify-between items-center mb-4">
+      <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
+
+      <div className="flex items-center gap-4">
         <Button onClick={() => navigate("/dashboard")}>Back</Button>
+
+        <h2 className="text-xl font-semibold">{presentation.name}</h2>
+
+        <Button size="sm" variant="outline" onClick={() => setEditingTitle(true)}>
+          Edit
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
+          Preview
+        </Button>
+
         <Button
           variant="destructive"
           onClick={() => setShowDeleteConfirm(true)}
         >
-          Delete Presentation
+          Delete
         </Button>
       </div>
-
-      <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-xl font-bold">{presentation.name}</h2>
-        <Button size="sm" onClick={() => setEditingTitle(true)}>
-          Edit
-        </Button>
-      </div>
+    </div>
 
 
       <div className="relative border h-100 flex items-center justify-center bg-gray-100">
@@ -725,10 +734,8 @@ const PresentationPage = () => {
         <Button variant="destructive" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
-        <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
-          Preview
-        </Button>
       </div>
+
 
       {showAddText && (
         <AddTextModal
