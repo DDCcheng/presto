@@ -725,6 +725,9 @@ const PresentationPage = () => {
         <Button variant="destructive" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
+        <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
+          Preview
+        </Button>
       </div>
 
       {showAddText && (

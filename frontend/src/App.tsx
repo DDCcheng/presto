@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import PresentationPage from './pages/PresentationPage'; 
+import PreviewPage from './pages/PreviewPage';
 
 function App() {
   return (
@@ -30,6 +31,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <PresentationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/preview/:id"
+            element={
+              <ProtectedRoute>
+                <PreviewPage />
               </ProtectedRoute>
             }
           />
