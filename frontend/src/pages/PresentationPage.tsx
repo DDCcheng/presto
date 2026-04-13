@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   getStore as getStoreApi,
   updateStore as updateStoreApi,
@@ -20,7 +20,6 @@ import python from 'highlight.js/lib/languages/python';
 import c from 'highlight.js/lib/languages/c';
 import 'highlight.js/styles/github.css';
 import AddCodeModal from "@/components/common/slides/AddCodeModal";
-
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('python', python);
 hljs.registerLanguage('c', c);
@@ -30,6 +29,7 @@ const PresentationPage = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
+  const slideRef=useRef<HTMLDivElement>(null);
 
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -38,12 +38,22 @@ const PresentationPage = () => {
   const [newTitle, setNewTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [editingElement,setEditingElement]=useState<SlideElement | null>(null);
+  const [selectedElementId,setSelectedElementId]=useState<string|null>('');
 
   // slide elements
   const [showAddText, setShowAddText] = useState(false);
   const [showAddImage,setShowAddImage]=useState(false);
   const [showAddVideo,setShowAddVideo]=useState(false);
   const [showAddCode,setShowAddCode]=useState(false);
+
+  //moving part
+  const dragInfo = useRef<{
+    elementId: string;
+    startMouseX: number;  
+    startMouseY: number;
+    startElX: number;     
+    startElY: number;
+} | null>(null);
 
   //code element logic
   const handleAddCode=async(width: number, height: number, code: string,fontSize:number)=>{
@@ -247,8 +257,59 @@ const PresentationPage = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentSlideIndex, presentation]);
 
-  if (!presentation) return <div>Loading...</div>;
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+    if (!dragInfo.current || !slideRef.current || !presentation) return;
+    e.preventDefault();
+    const rect = slideRef.current.getBoundingClientRect();
+    
+    // how many pixels mouse moved
+    const deltaX = ((e.clientX - dragInfo.current.startMouseX) / rect.width) * 100;
+    const deltaY = ((e.clientY - dragInfo.current.startMouseY) / rect.height) * 100;
+    
+    // new start= old one + moving distance
+    let newX = dragInfo.current.startElX + deltaX;
+    let newY = dragInfo.current.startElY + deltaY;
+    
+    // find current element,and get width and height from it
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const el = currentSlide.elements.find(e => e.id === dragInfo.current!.elementId);
+    if (!el) return;
+    
+    // boudary limits
+    newX = Math.max(0, Math.min(newX, 100 - el.width));
+    newY = Math.max(0, Math.min(newY, 100 - el.height));
+    
+    // update presentation
+    const updatedElements = currentSlide.elements.map(element =>
+      element.id === dragInfo.current!.elementId
+        ? { ...element, x: newX, y: newY }
+        : element
+    );
+    const updatedSlides = presentation.slides.map((s, index) =>
+      index === currentSlideIndex ? { ...s, elements: updatedElements } : s
+    );
+    setPresentation(prev => prev && { ...prev, slides: updatedSlides });
+    };
 
+    const handleMouseUp = () => {
+      if (!dragInfo.current) return ;
+      dragInfo.current=null;
+      if (presentation){
+        saveSlides(presentation.slides);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [currentSlideIndex, presentation]);
+
+
+  if (!presentation) return <div>Loading...</div>;
   const saveSlides = async (slides: any[]) => {
     if (!token) return;
     const data = await getStoreApi(token);
@@ -330,7 +391,7 @@ const PresentationPage = () => {
 
 
       <div className="relative border h-100 flex items-center justify-center bg-gray-100">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" onClick={()=>setSelectedElementId(null)} ref={slideRef}>
           {slide.elements.map((el) => (
             <div
               key={el.id}
@@ -341,6 +402,7 @@ const PresentationPage = () => {
                 width: `${el.width}%`,
                 height: `${el.height}%`,
                 zIndex: el.zIndex,
+                border: selectedElementId === el.id ? '2px solid blue' : 'none',
               }}
               onContextMenu={async(e)=>{
                 e.preventDefault();
@@ -353,6 +415,21 @@ const PresentationPage = () => {
                 await saveSlides(updatedSlides);
               }}
               onDoubleClick={()=> setEditingElement(el)}
+              onClick={(e)=>{
+                e.preventDefault();
+                e.stopPropagation();
+                setSelectedElementId(el.id)}}
+              onMouseDown={(e)=>{
+                e.stopPropagation();
+                if (selectedElementId !==el.id) return ;
+                dragInfo.current = {
+                  elementId: el.id,
+                  startMouseX: e.clientX,    
+                  startMouseY: e.clientY,
+                  startElX: el.x,            
+                  startElY: el.y,
+                };
+              }}
             >
             {el.type === 'text' && (
               <div 
@@ -371,6 +448,7 @@ const PresentationPage = () => {
                 src={el.src}
                 alt={el.alt}
                 className="w-full h-full object-contain"
+                draggable={false}
               />
             )}
 
@@ -389,7 +467,7 @@ const PresentationPage = () => {
               return (
                 <pre
                   className="w-full h-full border border-gray-300 overflow-auto m-0"
-                  style={{ fontSize: `${el.fontSize}em`, whiteSpace: 'pre' }}
+                  style={{ fontSize: `${el.fontSize}em`, whiteSpace: 'pre' , userSelect:'none'}}
                 >
                   <code
                     className={`hljs language-${highlighted.language}`}
@@ -398,6 +476,60 @@ const PresentationPage = () => {
                 </pre>
               );
             })()}
+
+            {selectedElementId==el.id &&(
+              <>
+                <div 
+                  style={
+                    {
+                      position:"absolute",
+                      top:-2.5,
+                      left:-2.5,
+                      width:5,
+                      height:5,
+                      backgroundColor:"black",
+                      cursor:"nwse-resize"
+                    }
+                  }></div>
+                <div 
+                  style={
+                    {
+                      position:"absolute",
+                      top:-2.5,
+                      right:-2.5,
+                      width:5,
+                      height:5,
+                      backgroundColor:"black",
+                      cursor:"nwse-resize"
+                    }
+                  }></div>
+                <div 
+                  style={
+                    {
+                      position:"absolute",
+                      bottom:-2.5,
+                      left:-2.5,
+                      width:5,
+                      height:5,
+                      backgroundColor:"black",
+                      cursor:"nwse-resize"
+                    }
+                  }></div>
+                <div 
+                  style={
+                    {
+                      position:"absolute",
+                      bottom:-2.5,
+                      right:-2.5,
+                      width:5,
+                      height:5,
+                      backgroundColor:"black",
+                      cursor:"nwse-resize"
+                    }
+                  }></div>
+              </>
+            )
+          }
 
             </div>
         ))}
