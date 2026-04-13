@@ -48,6 +48,8 @@ const PresentationPage = () => {
   const [showAddCode,setShowAddCode]=useState(false);
   const [showBackground,setShowBackground]=useState(false);
 
+  const [showSlidePanel, setShowSlidePanel] = useState(false);
+
   const handleSlideBackgroundChange = async (bg: BackgroundStyle | '') => {
     if (!presentation) return;
     const updatedSlides = presentation.slides.map((s, index) =>
@@ -713,6 +715,7 @@ const PresentationPage = () => {
       </div>
 
       <div className="flex gap-3 mt-4">
+        <Button onClick={() => setShowSlidePanel(true)}>Slide Panel</Button>
         <Button onClick={handleAddSlide}>+ Add Slide</Button>
         <Button onClick={()=>{setShowAddText(true)}}>+ Add Text</Button>
         <Button onClick={()=>{setShowAddImage(true)}}>+ Add image</Button>
@@ -840,6 +843,38 @@ const PresentationPage = () => {
             </div>
         ))}
         </div>
+
+        {showSlidePanel && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white w-4/5 h-4/5 rounded p-4 flex flex-col">
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold">Slides</h2>
+        <Button onClick={() => setShowSlidePanel(false)}>Close</Button>
+      </div>
+
+      <div className="flex-1 overflow-auto grid grid-cols-4 gap-4">
+        {presentation.slides.map((s, index) => (
+          <div
+            key={s.id}
+            onClick={() => {
+              setCurrentSlideIndex(index);
+              setShowSlidePanel(false);
+            }}
+            className={`border h-24 flex items-center justify-center cursor-pointer ${
+              index === currentSlideIndex
+                ? "border-blue-500 ring-2 ring-blue-400"
+                : "border-gray-300"
+            }`}
+          >
+            Slide {index + 1}
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 };
