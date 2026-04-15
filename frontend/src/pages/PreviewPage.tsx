@@ -181,11 +181,43 @@ const renderSlide = (s: any) =>
           </div>
     ));
 
+    const prevTransform = () => {
+      if (!isAnimating) return "translateX(0%)";
+
+      return direction === "left"
+        ? "translateX(-100%)"
+        : "translateX(100%)";
+    };
+
+  const currentTransform = () => {
+    if (!isAnimating) return "translateX(0%)";
+
+    return direction === "left"
+      ? "translateX(100%)"
+      : "translateX(-100%)";
+  };
+
   return (
     <div className="w-screen h-screen relative" style={getBackgroundStyle()}>
 
-      <div className="w-full h-full relative">
-        
+      {prevSlideIndex !== null && (
+        <div
+          className="absolute w-full h-full transition-transform duration-300 ease-in-out"
+          style={{
+            transform: prevTransform(),
+          }}
+        >
+          {renderSlide(presentation.slides[prevSlideIndex])}
+        </div>
+      )}
+
+      <div
+        className="absolute w-full h-full transition-transform duration-300 ease-in-out"
+        style={{
+          transform: currentTransform(),
+        }}
+      >
+        {renderSlide(slide)}
       </div>
 
       <button
