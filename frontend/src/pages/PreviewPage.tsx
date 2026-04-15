@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import { getStore as getStoreApi } from "../services/api";
 import type { Presentation } from "../types";
 
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import python from "highlight.js/lib/languages/python";
+import c from "highlight.js/lib/languages/c";
+import "highlight.js/styles/github.css";
+
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("c", c);
+
 
 const PreviewPage = () => {
   const { id } = useParams();
@@ -149,7 +159,7 @@ const renderSlide = (s: any) =>
           >
             {el.type === "text" && (
               <div
-                className="w-full h-full"
+                className="w-full h-full border border-gray-300 overflow-auto whitespace-normal text-center"
                 style={{
                   fontSize: `${el.fontSize}em`,
                   color: el.color,
@@ -173,11 +183,22 @@ const renderSlide = (s: any) =>
               />
             )}
 
-            {el.type === "code" && (
-              <pre className="w-full h-full overflow-auto">
-                <code>{el.code}</code>
-              </pre>
-            )}
+            {el.type === "code" && (() => {
+              const highlighted = hljs.highlightAuto(el.code, [
+                "javascript",
+                "python",
+                "c",
+              ]);
+
+              return (
+                <pre className="w-full h-full overflow-auto m-0">
+                  <code
+                    className={`hljs language-${highlighted.language}`}
+                    dangerouslySetInnerHTML={{ __html: highlighted.value }}
+                  />
+                </pre>
+              );
+            })()}
           </div>
     ));
 

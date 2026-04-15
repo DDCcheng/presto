@@ -135,6 +135,7 @@ const PresentationPage = () => {
     })
     await saveSlides(updatedSlides);
     setEditingElement(null)
+    
   };
 
   //video element logic
