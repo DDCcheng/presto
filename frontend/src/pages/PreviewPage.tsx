@@ -15,17 +15,44 @@ const PreviewPage = () => {
 const urlSlide = Number(searchParams.get("slide")) || 0;
 const [currentSlideIndex, setCurrentSlideIndex] = useState(urlSlide);
 
+const [prevSlideIndex, setPrevSlideIndex] = useState<number | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [direction, setDirection] = useState<"left" | "right" | null>(null);
+
 const goToSlide = (index: number) => {
-  if (!presentation) return;
+    if (!presentation) return;
+    if (isAnimating) return;
 
-  const safeIndex = Math.max(
-    0,
-    Math.min(index, presentation.slides.length - 1)
-  );
+    const safeIndex = Math.max(
+      0,
+      Math.min(index, presentation.slides.length - 1)
+    );
 
-  setCurrentSlideIndex(safeIndex);
-  setSearchParams({ slide: String(safeIndex) });
-};
+    const currentSlide = presentation.slides[currentSlideIndex];
+    const transition = currentSlide.transition || "none";
+
+    if (transition === "none") {
+      setCurrentSlideIndex(safeIndex);
+      setSearchParams({ slide: String(safeIndex) });
+      return;
+    }
+
+    const dir: "left" | "right" =
+      transition === "slide-left" ? "left" : "right";
+
+    setDirection(dir);
+    setPrevSlideIndex(currentSlideIndex);
+    setIsAnimating(true);
+
+    setTimeout(() => {
+      setCurrentSlideIndex(safeIndex);
+      setPrevSlideIndex(null);
+      setDirection(null);
+      setIsAnimating(false);
+      setSearchParams({ slide: String(safeIndex) });
+    }, 300);
+  };
+
 
   const fetchData = async () => {
     if (!token) return;
