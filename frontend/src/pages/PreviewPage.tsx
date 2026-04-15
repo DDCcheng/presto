@@ -134,12 +134,9 @@ const goToSlide = (index: number) => {
   return { backgroundColor: "white" };
 };
 
-  return (
-    <div className="w-screen h-screen relative" style={getBackgroundStyle()}>
-
-      <div className="w-full h-full relative">
-        {slide.elements.map((el) => (
-          <div
+const renderSlide = (s: any) =>
+    s.elements.map((el: any) => (
+      <div
             key={el.id}
             style={{
               position: "absolute",
@@ -182,7 +179,13 @@ const goToSlide = (index: number) => {
               </pre>
             )}
           </div>
-        ))}
+    ));
+
+  return (
+    <div className="w-screen h-screen relative" style={getBackgroundStyle()}>
+
+      <div className="w-full h-full relative">
+        
       </div>
 
       <button
