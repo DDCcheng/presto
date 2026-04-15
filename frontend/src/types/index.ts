@@ -41,6 +41,7 @@ export interface BackgroundStyle {
 
 export interface Slide{
     id:string;
+    transition: 'slide-left' | 'slide-right' | 'none';
     elements: SlideElement[];
     background:BackgroundStyle | '';
 }

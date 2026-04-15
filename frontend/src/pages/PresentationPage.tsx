@@ -415,6 +415,7 @@ const PresentationPage = () => {
       id: crypto.randomUUID(),
       elements: [],
       background: "",
+      transition: "none",
     };
     const updatedSlides = [...presentation.slides, newSlide];
     await saveSlides(updatedSlides);
@@ -733,6 +734,26 @@ const PresentationPage = () => {
         <Button variant="destructive" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
+
+      <div className="ml-auto w-64">
+        <select
+          className="border rounded px-2 py-1 w-full bg-white"
+          value={slide.transition}
+          onChange={async (e) => {
+            const value = e.target.value as 'none' | 'slide-left' | 'slide-right';
+
+            const updatedSlides = presentation.slides.map((s, i) =>
+              i === currentSlideIndex ? { ...s, transition: value } : s
+            );
+
+            await saveSlides(updatedSlides);
+          }}
+        >
+          <option value="none">No animation</option>
+          <option value="slide-right">Slide (from right)</option>
+          <option value="slide-left">Slide (from left)</option>
+        </select>
+      </div>
       </div>
 
 
