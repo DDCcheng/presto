@@ -50,6 +50,8 @@ const PresentationPage = () => {
 
   const [showSlidePanel, setShowSlidePanel] = useState(false);
 
+  const [draggedSlide, setDraggedIndex] = useState<number | null>(null);
+
   const handleSlideBackgroundChange = async (bg: BackgroundStyle | '') => {
     if (!presentation) return;
     const updatedSlides = presentation.slides.map((s, index) =>
@@ -403,12 +405,13 @@ const PresentationPage = () => {
   if (!presentation) return <div>Loading...</div>;
   const saveSlides = async (slides: any[]) => {
     if (!token) return;
+    setPresentation((prev) => prev && { ...prev, slides });
     const data = await getStoreApi(token);
     const updated = data.store.presentations.map((p: Presentation) =>
       p.id === id ? { ...p, slides } : p
     );
     await updateStoreApi(token, { presentations: updated });
-    setPresentation((prev) => prev && { ...prev, slides });
+    
   };
 
   const handleAddSlide = async () => {
@@ -888,6 +891,28 @@ const PresentationPage = () => {
         {presentation.slides.map((s, index) => (
           <div
             key={s.id}
+            draggable
+            //pick up slide
+            onDragStart={() => {
+              setDraggedIndex(index);
+            }}
+            //move it around 
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={async () => {
+              if(draggedSlide == null || draggedSlide == index){
+                return;
+              }
+              else{
+                const newSlideSet = [...presentation.slides];
+                const [removedSlide] = newSlideSet.splice(draggedSlide, 1);
+                newSlideSet.splice(index, 0, removedSlide);
+
+                await saveSlides(newSlideSet);
+                setDraggedIndex(null);
+              }
+            }}
             onClick={() => {
               setCurrentSlideIndex(index);
               setShowSlidePanel(false);
