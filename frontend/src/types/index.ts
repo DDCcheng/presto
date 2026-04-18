@@ -85,7 +85,7 @@ export interface VideoElement extends BaseElement {
     src:string;
     autoplay: boolean;
  }
- export interface CodeElement extends BaseElement { 
+export interface CodeElement extends BaseElement { 
     type:'code';
     code:string;
     fontSize:number;
