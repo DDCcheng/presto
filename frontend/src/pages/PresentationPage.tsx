@@ -5,7 +5,7 @@ import {
   getStore as getStoreApi,
   updateStore as updateStoreApi,
 } from "../services/api";
-import type { Presentation, SlideElement } from "../types";
+import type { Presentation, SlideElement, PresentationHistory } from "../types";
 import { Button } from "../components/ui/button";
 import ErrorPopup from "../components/common/ErrorPopup";
 import AddTextModal from "@/components/common/slides/AddTextModal";
@@ -21,6 +21,7 @@ import python from 'highlight.js/lib/languages/python';
 import c from 'highlight.js/lib/languages/c';
 import 'highlight.js/styles/github.css';
 import AddCodeModal from "@/components/common/slides/AddCodeModal";
+import NewPresentation from "@/components/common/NewPresentationModal";
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('python', python);
 hljs.registerLanguage('c', c);
@@ -40,6 +41,8 @@ const PresentationPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingElement,setEditingElement]=useState<SlideElement | null>(null);
   const [selectedElementId,setSelectedElementId]=useState<string|null>('');
+  const lastSave = useRef<number>(0);
+  const saveInterval = 60 * 1000;
 
   // slide elements
   const [showAddText, setShowAddText] = useState(false);
@@ -97,6 +100,19 @@ const PresentationPage = () => {
     startElW: number;
     startElH: number;
   } | null>(null);
+
+  //saving presentation history 
+  const savePresentationHistory = (p: Presentation): PresentationHistory => {
+    return {
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      slides: structuredClone(p.slides),
+      name: p.name,
+      description: p.description,
+      thumbnail: p.thumbnail,
+      defaultBackground: p.defaultBackground,
+    };
+  };
 
   //code element logic
   const handleAddCode=async(width: number, height: number, code: string,fontSize:number)=>{
@@ -407,9 +423,35 @@ const PresentationPage = () => {
     if (!token) return;
     setPresentation((prev) => prev && { ...prev, slides });
     const data = await getStoreApi(token);
-    const updated = data.store.presentations.map((p: Presentation) =>
+    const updated = data.store.presentations.map((p: Presentation) =>{
       p.id === id ? { ...p, slides } : p
-    );
+      const now = Date.now();
+      let shouldSave = false; 
+      if(lastSave.current - now > saveInterval){
+        shouldSave = true; 
+      }
+      else{
+        shouldSave = false; 
+      }
+      const nowPresentation: any = {...p, slides, history: presentation.history || []};
+      if(shouldSave){
+        nowPresentation.history = [
+        {
+          id: crypto.randomUUID(),
+          timestamp: now,
+          slides: structuredClone(slides),
+          name: p.name,
+          description: p.description,
+          thumbnail: p.thumbnail,
+          defaultBackground: p.defaultBackground,
+        },
+        ...nowPresentation.history,
+      ];
+      lastSave.current = now; 
+    }
+    return nowPresentation;
+    });
+    
     await updateStoreApi(token, { presentations: updated });
     
   };
