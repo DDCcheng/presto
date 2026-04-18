@@ -6,36 +6,36 @@ import { login as loginApi } from "../services/api";
 import ErrorPopup from "../components/common/ErrorPopup";
 
 const LoginPage =()=>{
-    const navigate=useNavigate();
-    const {login}=useAuth();
+  const navigate=useNavigate();
+  const {login}=useAuth();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async ()=>{
-        if(!email ||!password){
-            setError('Please enter email and password');
-            return ;
-        }
-        setLoading(true);
-        try {
-            const data=await loginApi({email,password});
-            login(data.token);
-            navigate('/dashboard');
-        }catch(error){
-            setError( error instanceof Error ? error.message : 'Login failed');
-        }finally{
-            setLoading(false);
-        }
-    };
-
-    const handleKeyDown =(e:React.KeyboardEvent)=>{
-        if (e.key=='Enter') handleSubmit();
+  const handleSubmit = async ()=>{
+    if(!email ||!password){
+      setError('Please enter email and password');
+      return ;
     }
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    setLoading(true);
+    try {
+      const data=await loginApi({email,password});
+      login(data.token);
+      navigate('/dashboard');
+    }catch(error){
+      setError( error instanceof Error ? error.message : 'Login failed');
+    }finally{
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown =(e:React.KeyboardEvent)=>{
+    if (e.key=='Enter') handleSubmit();
+  }
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Login</h1>
 
@@ -87,6 +87,6 @@ const LoginPage =()=>{
         <ErrorPopup message={error} onClose={() => setError(null)} />
       )}
     </div>
-    );
+  );
 };
 export default LoginPage;
