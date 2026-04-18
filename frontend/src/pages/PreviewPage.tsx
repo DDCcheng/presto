@@ -22,14 +22,14 @@ const PreviewPage = () => {
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
-const urlSlide = Number(searchParams.get("slide")) || 0;
-const [currentSlideIndex, setCurrentSlideIndex] = useState(urlSlide);
+  const urlSlide = Number(searchParams.get("slide")) || 0;
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(urlSlide);
 
-const [prevSlideIndex, setPrevSlideIndex] = useState<number | null>(null);
+  const [prevSlideIndex, setPrevSlideIndex] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
 
-const goToSlide = (index: number) => {
+  const goToSlide = (index: number) => {
     if (!presentation) return;
     if (isAnimating) return;
 
@@ -102,12 +102,12 @@ const goToSlide = (index: number) => {
     const urlSlide = Number(searchParams.get("slide")) || 0;
 
     const safeIndex = Math.max(
-        0,
-        Math.min(urlSlide, presentation.slides.length - 1)
+      0,
+      Math.min(urlSlide, presentation.slides.length - 1)
     );
 
     setCurrentSlideIndex(safeIndex);
-    }, [presentation]);
+  }, [presentation]);
 
 
   if (!presentation) return <div>Loading...</div>;
@@ -117,98 +117,98 @@ const goToSlide = (index: number) => {
   presentation.slides[0];
 
   const getBackgroundStyle = () => {
-  const slide = presentation.slides[currentSlideIndex];
+    const slide = presentation.slides[currentSlideIndex];
 
-  const bg = slide.background || presentation.defaultBackground;
+    const bg = slide.background || presentation.defaultBackground;
 
-  if (!bg) return { backgroundColor: "white" };
+    if (!bg) return { backgroundColor: "white" };
 
-  if (bg.type === "solid") {
-    return { backgroundColor: bg.color };
-  }
+    if (bg.type === "solid") {
+      return { backgroundColor: bg.color };
+    }
 
-  if (bg.type === "gradient") {
-    return {
-      background: `linear-gradient(to right, ${bg.gradientStart}, ${bg.gradientEnd})`,
-    };
-  }
+    if (bg.type === "gradient") {
+      return {
+        background: `linear-gradient(to right, ${bg.gradientStart}, ${bg.gradientEnd})`,
+      };
+    }
 
-  if (bg.type === "image") {
-    return {
-      backgroundImage: `url(${bg.image})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    };
-  }
+    if (bg.type === "image") {
+      return {
+        backgroundImage: `url(${bg.image})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+    }
 
-  return { backgroundColor: "white" };
-};
+    return { backgroundColor: "white" };
+  };
 
-const renderSlide = (s: any) =>
+  const renderSlide = (s: any) =>
     s.elements.map((el: any) => (
       <div
-            key={el.id}
+        key={el.id}
+        style={{
+          position: "absolute",
+          left: `${el.x}%`,
+          top: `${el.y}%`,
+          width: `${el.width}%`,
+          height: `${el.height}%`,
+          zIndex: el.zIndex,
+        }}
+      >
+        {el.type === "text" && (
+          <div
+            className="w-full h-full border border-gray-300 overflow-auto whitespace-normal text-center"
             style={{
-              position: "absolute",
-              left: `${el.x}%`,
-              top: `${el.y}%`,
-              width: `${el.width}%`,
-              height: `${el.height}%`,
-              zIndex: el.zIndex,
+              fontSize: `${el.fontSize}em`,
+              color: el.color,
+              fontFamily: el.fontFamily,
             }}
           >
-            {el.type === "text" && (
-              <div
-                className="w-full h-full border border-gray-300 overflow-auto whitespace-normal text-center"
-                style={{
-                  fontSize: `${el.fontSize}em`,
-                  color: el.color,
-                  fontFamily: el.fontFamily,
-                }}
-              >
-                {el.text}
-              </div>
-            )}
-
-            {el.type === "image" && (
-              <img src={el.src} alt={el.alt} className="w-full h-full object-contain" />
-            )}
-
-            {el.type === "video" && (
-              <iframe
-                src={el.src}
-                className="w-full h-full"
-                title="video"
-                allow="autoplay"
-              />
-            )}
-
-            {el.type === "code" && (() => {
-              const highlighted = hljs.highlightAuto(el.code, [
-                "javascript",
-                "python",
-                "c",
-              ]);
-
-              return (
-                <pre className="w-full h-full overflow-auto m-0">
-                  <code
-                    className={`hljs language-${highlighted.language}`}
-                    dangerouslySetInnerHTML={{ __html: highlighted.value }}
-                  />
-                </pre>
-              );
-            })()}
+            {el.text}
           </div>
+        )}
+
+        {el.type === "image" && (
+          <img src={el.src} alt={el.alt} className="w-full h-full object-contain" />
+        )}
+
+        {el.type === "video" && (
+          <iframe
+            src={el.src}
+            className="w-full h-full"
+            title="video"
+            allow="autoplay"
+          />
+        )}
+
+        {el.type === "code" && (() => {
+          const highlighted = hljs.highlightAuto(el.code, [
+            "javascript",
+            "python",
+            "c",
+          ]);
+
+          return (
+            <pre className="w-full h-full overflow-auto m-0">
+              <code
+                className={`hljs language-${highlighted.language}`}
+                dangerouslySetInnerHTML={{ __html: highlighted.value }}
+              />
+            </pre>
+          );
+        })()}
+      </div>
     ));
 
-    const prevTransform = () => {
-      if (!isAnimating) return "translateX(0%)";
+  const prevTransform = () => {
+    if (!isAnimating) return "translateX(0%)";
 
-      return direction === "left"
-        ? "translateX(-100%)"
-        : "translateX(100%)";
-    };
+    return direction === "left"
+      ? "translateX(-100%)"
+      : "translateX(100%)";
+  };
 
   const currentTransform = () => {
     if (!isAnimating) return "translateX(0%)";
