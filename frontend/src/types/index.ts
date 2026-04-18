@@ -22,6 +22,16 @@ export interface Store{
     presentations:Presentation[];
 }
 
+export interface PresentationHistory {
+  id: string;
+  timestamp: number;
+  slides: Slide[];
+  name: string;
+  description: string;
+  thumbnail: string;
+  defaultBackground: BackgroundStyle;
+}
+
 export interface Presentation{
     id:string;
     name:string;
@@ -29,6 +39,7 @@ export interface Presentation{
     thumbnail: string;
     slides:Slide[];
     defaultBackground:BackgroundStyle;
+    history?: PresentationHistory[];
 }
 
 export interface BackgroundStyle {
