@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 
 const LandingPage =()=>{
-    const navigate=useNavigate();
+  const navigate=useNavigate();
 
-   return (
+  return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="text-center mb-8">
         <h1 className="text-5xl font-bold text-gray-900 mb-4">🪄 Presto</h1>
