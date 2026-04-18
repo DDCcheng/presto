@@ -39,78 +39,78 @@ interface AddTextModalProps {
 }
 
 const AddTextModal=({onClose,onSubmit,initialData}:AddTextModalProps)=>{
-    const [x, setX] = useState(initialData?.x ?? 0);
-    const [y, setY] = useState(initialData?.y ?? 0);
-    const [text,setText]=useState(initialData?.text ??'');
-    const [color,setColor]=useState(initialData?.color ??'#000000');
-    const [width,setWidth]=useState(initialData?.width ??30);
-    const [height,setHeight]=useState(initialData?.height ??30);
-    const [fontSize,setFontSize]=useState(initialData?.fontSize ??1);
-    const [fontFamily,setFontFamily]=useState(initialData?.fontFamily ??'Arial')
-    return (
-        <>
-            <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent>
-                <DialogHeader>
-                <DialogTitle>{initialData ? 'Edit Text Element' : 'New Text Element'}</DialogTitle>
-                <DialogDescription></DialogDescription>
-                </DialogHeader>
-            <FieldGroup>
-                <Field>
-                    <FieldLabel htmlFor="textarea-text">Text</FieldLabel>
-                    <FieldDescription>Enter your text below.</FieldDescription>
-                    <Textarea id="textarea-text" placeholder="Type your text here." value={text} onChange={(e) => setText(e.target.value)} />
-                </Field>
-                <Field>
-                    <Label htmlFor="color">color</Label>
-                    <Input  placeholder="Enter your color" value={color} onChange={(e) => setColor(e.target.value)} />
-                </Field>
-                <Field>
-                    <Label htmlFor="fontSize">Font Size (em)</Label>
-                    <Input type="number" step="0.1" placeholder="e.g. 1.5" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} />
-                </Field>
-                <Field>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline">Font-Style: {fontFamily}</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuGroup>
-                            <DropdownMenuLabel>Font-Family</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={()=>setFontFamily('Arial')}>Arial</DropdownMenuItem>
-                            <DropdownMenuItem onClick={()=>setFontFamily('Times New Roman')}>Times New Roman</DropdownMenuItem>
-                            <DropdownMenuItem onClick={()=>setFontFamily('Courier New')}>Courier New</DropdownMenuItem>
-                            </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </Field>
-                <Field>
-                    <Label htmlFor="width">width</Label>
-                    <Input  type="number" placeholder="Enter your width(0-100)" value={width} onChange={(e) => setWidth(Number(e.target.value))} />
-                </Field>
-                <Field>
-                    <Label htmlFor="height">height</Label>
-                    <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
-                </Field>
-                {initialData && <Field>
-                    <Label htmlFor="x-y">position</Label>
-                    <Input  type="number" placeholder="x" value={x} onChange={(e) => setX(Number(e.target.value))} />
-                    <Input  type="number" placeholder="y" value={y} onChange={(e) => setY(Number(e.target.value))} />
-                </Field>
-                }
-            </FieldGroup>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                </DialogClose>
-                <Button onClick={() => onSubmit(text, color, width, height, fontSize, x, y,fontFamily)}>
-                    {initialData ? 'Save' : 'Create'}
-                </Button>
+  const [x, setX] = useState(initialData?.x ?? 0);
+  const [y, setY] = useState(initialData?.y ?? 0);
+  const [text,setText]=useState(initialData?.text ??'');
+  const [color,setColor]=useState(initialData?.color ??'#000000');
+  const [width,setWidth]=useState(initialData?.width ??30);
+  const [height,setHeight]=useState(initialData?.height ??30);
+  const [fontSize,setFontSize]=useState(initialData?.fontSize ??1);
+  const [fontFamily,setFontFamily]=useState(initialData?.fontFamily ??'Arial')
+  return (
+    <>
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{initialData ? 'Edit Text Element' : 'New Text Element'}</DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="textarea-text">Text</FieldLabel>
+              <FieldDescription>Enter your text below.</FieldDescription>
+              <Textarea id="textarea-text" placeholder="Type your text here." value={text} onChange={(e) => setText(e.target.value)} />
+            </Field>
+            <Field>
+              <Label htmlFor="color">color</Label>
+              <Input  placeholder="Enter your color" value={color} onChange={(e) => setColor(e.target.value)} />
+            </Field>
+            <Field>
+              <Label htmlFor="fontSize">Font Size (em)</Label>
+              <Input type="number" step="0.1" placeholder="e.g. 1.5" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} />
+            </Field>
+            <Field>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">Font-Style: {fontFamily}</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Font-Family</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={()=>setFontFamily('Arial')}>Arial</DropdownMenuItem>
+                    <DropdownMenuItem onClick={()=>setFontFamily('Times New Roman')}>Times New Roman</DropdownMenuItem>
+                    <DropdownMenuItem onClick={()=>setFontFamily('Courier New')}>Courier New</DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Field>
+            <Field>
+              <Label htmlFor="width">width</Label>
+              <Input  type="number" placeholder="Enter your width(0-100)" value={width} onChange={(e) => setWidth(Number(e.target.value))} />
+            </Field>
+            <Field>
+              <Label htmlFor="height">height</Label>
+              <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
+            </Field>
+            {initialData && <Field>
+              <Label htmlFor="x-y">position</Label>
+              <Input  type="number" placeholder="x" value={x} onChange={(e) => setX(Number(e.target.value))} />
+              <Input  type="number" placeholder="y" value={y} onChange={(e) => setY(Number(e.target.value))} />
+            </Field>
+            }
+          </FieldGroup>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+            </DialogClose>
+            <Button onClick={() => onSubmit(text, color, width, height, fontSize, x, y,fontFamily)}>
+              {initialData ? 'Save' : 'Create'}
+            </Button>
           </DialogFooter>
-            </DialogContent>
-        </Dialog>
-        </>
-    )
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }
 
 export default AddTextModal;
