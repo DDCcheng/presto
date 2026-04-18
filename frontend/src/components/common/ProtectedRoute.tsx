@@ -7,12 +7,12 @@ interface ProtectedRouteProps{
 }
 
 const ProtectedRouter =({children}:ProtectedRouteProps)=>{
-    const {isAuthentication} =useAuth();
+  const {isAuthentication} =useAuth();
 
-    if (!isAuthentication){
-        return <Navigate to='/' replace/>;
-    }
-    return <>{children}</>;
+  if (!isAuthentication){
+    return <Navigate to='/' replace/>;
+  }
+  return <>{children}</>;
 };
 
 export default ProtectedRouter;
