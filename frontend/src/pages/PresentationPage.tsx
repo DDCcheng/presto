@@ -947,7 +947,58 @@ const PresentationPage = () => {
                 className="relative w-full h-full"
                 style={getSlideBackgroundStyle(s)}
               >
-                
+                {s.elements.map((el) => (
+                  <div
+                    key={el.id}
+                    style={{
+                      position: "absolute",
+                      left: `${el.x}%`,
+                      top: `${el.y}%`,
+                      width: `${el.width}%`,
+                      height: `${el.height}%`,
+                    }}
+                  >
+                    {el.type === "text" && (
+                      <div
+                        style={{
+                          fontSize: `${el.fontSize * 0.3}em`,
+                          overflow: "hidden",
+                        }}
+                      >
+                        {el.text}
+                      </div>
+                    )}
+
+                    {el.type === "image" && (
+                      <img
+                        src={el.src}
+                        className="w-full h-full object-contain"
+                      />
+                    )}
+                    {el.type === "code" && (() => {
+                      const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
+
+                      return (
+                        <pre
+                          style={{
+                            fontSize: `${el.fontSize * 0.25}em`, // smaller for thumbnail
+                            margin: 0,
+                            padding: "2px",
+                            overflow: "hidden",
+                            whiteSpace: "pre-wrap",
+                            lineHeight: 1.1,
+                          }}
+                          className="hljs"
+                        >
+                          <code
+                            className={`language-${highlighted.language}`}
+                            dangerouslySetInnerHTML={{ __html: highlighted.value }}
+                          />
+                        </pre>
+                      );
+                    })()}
+                  </div>
+                ))}
               </div>
           </div>
           </div>
