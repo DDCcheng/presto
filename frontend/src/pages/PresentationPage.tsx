@@ -42,7 +42,7 @@ const PresentationPage = () => {
   const [editingElement,setEditingElement]=useState<SlideElement | null>(null);
   const [selectedElementId,setSelectedElementId]=useState<string|null>('');
   const lastSave = useRef<number>(0);
-  const saveInterval = 60 * 1000;
+  const saveInterval = 60000;
 
   // slide elements
   const [showAddText, setShowAddText] = useState(false);
@@ -54,6 +54,7 @@ const PresentationPage = () => {
   const [showSlidePanel, setShowSlidePanel] = useState(false);
 
   const [draggedSlide, setDraggedIndex] = useState<number | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   const handleSlideBackgroundChange = async (bg: BackgroundStyle | '') => {
     if (!presentation) return;
@@ -419,23 +420,23 @@ const PresentationPage = () => {
 
 
   if (!presentation) return <div>Loading...</div>;
-  const saveSlides = async (slides: any[]) => {
-    if (!token) return;
-    setPresentation((prev) => prev && { ...prev, slides });
-    const data = await getStoreApi(token);
-    const updated = data.store.presentations.map((p: Presentation) =>{
-      p.id === id ? { ...p, slides } : p
-      const now = Date.now();
-      let shouldSave = false; 
-      if(lastSave.current - now > saveInterval){
-        shouldSave = true; 
-      }
-      else{
-        shouldSave = false; 
-      }
-      const nowPresentation: any = {...p, slides, history: presentation.history || []};
-      if(shouldSave){
-        nowPresentation.history = [
+const saveSlides = async (slides: any[]) => {
+  if (!token) return;
+
+  const data = await getStoreApi(token);
+
+  const now = Date.now();
+  const shouldSaveHistory =
+  lastSave.current === 0 || now - lastSave.current > saveInterval;
+
+  const updated = data.store.presentations.map((p: Presentation) => {
+    if (p.id !== id) return p;
+
+    let newHistory = p.history || [];
+
+    if (shouldSaveHistory) {
+      console.log("Saving history:", shouldSaveHistory);
+      newHistory = [
         {
           id: crypto.randomUUID(),
           timestamp: now,
@@ -445,16 +446,25 @@ const PresentationPage = () => {
           thumbnail: p.thumbnail,
           defaultBackground: p.defaultBackground,
         },
-        ...nowPresentation.history,
+        ...newHistory,
       ];
-      lastSave.current = now; 
+
+      lastSave.current = now;
     }
-    return nowPresentation;
-    });
+
+    return {
+      ...p,
+      slides,
+      history: newHistory,
+    };
+  });
+
+  await updateStoreApi(token, { presentations: updated });
+
+  setPresentation(prev => {
     
-    await updateStoreApi(token, { presentations: updated });
-    
-  };
+  });
+};
 
   const handleAddSlide = async () => {
     const newSlide = {
@@ -526,6 +536,9 @@ const PresentationPage = () => {
 
   const slide = presentation.slides[currentSlideIndex];
 
+
+  
+
   return (
     <div className="min-h-screen p-6 relative">
       <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
@@ -541,6 +554,10 @@ const PresentationPage = () => {
       </div>
 
       <div className="flex items-center gap-3">
+        <Button onClick={() => setShowHistory(true)}>
+          History
+        </Button>
+
         <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
           Preview
         </Button>
@@ -938,6 +955,44 @@ const PresentationPage = () => {
             </div>
         ))}
         </div>
+
+        {showHistory && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white w-2/3 h-3/4 p-4 rounded flex flex-col">
+
+      <div className="flex justify-between mb-4">
+        <h2 className="text-lg font-bold">History</h2>
+        <Button onClick={() => setShowHistory(false)}>Close</Button>
+      </div>
+
+      <div className="overflow-auto flex flex-col gap-3">
+        {(presentation.history || [])
+          .slice()
+          .reverse()
+          .map((h: PresentationHistory) => (
+            <div
+              key={h.id}
+              className="border p-3 flex justify-between items-center"
+            >
+              <div>
+                <div className="text-sm font-semibold">
+                  {new Date(h.timestamp).toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {h.slides.length} slides
+                </div>
+              </div>
+
+              <Button onClick={() => handleRestoreHistory(h)}>
+                Restore
+              </Button>
+            </div>
+          ))}
+      </div>
+
+    </div>
+  </div>
+)}
 
         {showSlidePanel && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
