@@ -462,7 +462,30 @@ const saveSlides = async (slides: any[]) => {
   await updateStoreApi(token, { presentations: updated });
 
   setPresentation(prev => {
-    
+    if (!prev) return prev;
+
+    let newHistory = prev.history || [];
+
+    if (shouldSaveHistory) {
+      newHistory = [
+        {
+          id: crypto.randomUUID(),
+          timestamp: now,
+          slides: structuredClone(slides),
+          name: prev.name,
+          description: prev.description,
+          thumbnail: prev.thumbnail,
+          defaultBackground: prev.defaultBackground,
+        },
+        ...newHistory,
+      ];
+    }
+
+    return {
+      ...prev,
+      slides,
+      history: newHistory,
+    };
   });
 };
 
@@ -536,7 +559,27 @@ const saveSlides = async (slides: any[]) => {
 
   const slide = presentation.slides[currentSlideIndex];
 
+  const handleRestoreHistory = async (history: PresentationHistory) => {
+    if (!presentation || !token) return;
 
+    const updatedSlides = history.slides;
+
+    await saveSlides(updatedSlides);
+
+    setPresentation(prev =>
+      prev && {
+        ...prev,
+        slides: history.slides,
+        name: history.name,
+        description: history.description,
+        thumbnail: history.thumbnail,
+        defaultBackground: history.defaultBackground,
+      }
+    );
+
+    setCurrentSlideIndex(0);
+    setShowHistory(false);
+  };
   
 
   return (
