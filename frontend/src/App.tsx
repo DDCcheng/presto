@@ -13,39 +13,39 @@ function App() {
   return (
     <>
       <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/presentation/:id"
-            element={
-              <ProtectedRoute>
-                <PresentationPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/preview/:id"
-            element={
-              <ProtectedRoute>
-                <PreviewPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/presentation/:id"
+              element={
+                <ProtectedRoute>
+                  <PresentationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/preview/:id"
+              element={
+                <ProtectedRoute>
+                  <PreviewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </>
   )
 }
