@@ -463,6 +463,25 @@ const PresentationPage = () => {
     setEditingTitle(false);
   };
 
+  const getSlideBackgroundStyle = (s: any) => {
+    const bg = s.background || presentation?.defaultBackground;
+
+    if (!bg) return {};
+
+    if (bg.type === "solid") return { backgroundColor: bg.color };
+    if (bg.type === "gradient")
+      return {
+        background: `linear-gradient(to right, ${bg.gradientStart}, ${bg.gradientEnd})`,
+      };
+    if (bg.type === "image")
+      return {
+        backgroundImage: `url(${bg.image})`,
+        backgroundSize: "cover",
+      };
+
+    return {};
+  };
+
   const slide = presentation.slides[currentSlideIndex];
 
   return (
@@ -917,13 +936,20 @@ const PresentationPage = () => {
               setCurrentSlideIndex(index);
               setShowSlidePanel(false);
             }}
-            className={`border h-24 flex items-center justify-center cursor-pointer ${
+             className={`border shadow-sm bg-white cursor-pointer ${
               index === currentSlideIndex
                 ? "border-blue-500 ring-2 ring-blue-400"
                 : "border-gray-300"
-            }`}
+              }`}
           >
-            Slide {index + 1}
+            <div className="w-full aspect-video relative bg-gray-100">
+              <div
+                className="relative w-full h-full"
+                style={getSlideBackgroundStyle(s)}
+              >
+                
+              </div>
+          </div>
           </div>
         ))}
       </div>
