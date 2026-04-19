@@ -798,9 +798,9 @@ const PresentationPage = () => {
               key="arrow-left"
               disabled={currentSlideIndex === 0}
               className={`absolute left-2 text-2xl ${currentSlideIndex === 0
-                  ? "opacity-30 cursor-not-allowed"
-                  : "cursor-pointer hover:scale-110"
-                }`}
+                ? "opacity-30 cursor-not-allowed"
+                : "cursor-pointer hover:scale-110"
+              }`}
               onClick={() => setCurrentSlideIndex((i) => i - 1)}
             >
               ←
@@ -809,9 +809,9 @@ const PresentationPage = () => {
               key="arrow-right"
               disabled={currentSlideIndex === presentation.slides.length - 1}
               className={`absolute right-2 text-2xl ${currentSlideIndex === presentation.slides.length - 1
-                  ? "opacity-30 cursor-not-allowed"
-                  : "cursor-pointer hover:scale-110"
-                }`}
+                ? "opacity-30 cursor-not-allowed"
+                : "cursor-pointer hover:scale-110"
+              }`}
               onClick={() => setCurrentSlideIndex((i) => i + 1)}
             >
               →
@@ -961,9 +961,9 @@ const PresentationPage = () => {
             key={s.id}
             onClick={() => setCurrentSlideIndex(index)}
             className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${index === currentSlideIndex
-                ? "border-blue-500 ring-2 ring-blue-400"
-                : "border-gray-300"
-              }`}
+              ? "border-blue-500 ring-2 ring-blue-400"
+              : "border-gray-300"
+            }`}
           >
             <span className="text-sm">{`Slide ${index + 1}`}</span>
           </div>
@@ -1048,9 +1048,9 @@ const PresentationPage = () => {
                     setShowSlidePanel(false);
                   }}
                   className={`border shadow-sm bg-white cursor-pointer ${index === currentSlideIndex
-                      ? "border-blue-500 ring-2 ring-blue-400"
-                      : "border-gray-300"
-                    }`}
+                    ? "border-blue-500 ring-2 ring-blue-400"
+                    : "border-gray-300"
+                  }`}
                 >
                   <div className="w-full aspect-video relative bg-gray-100">
                     <div
