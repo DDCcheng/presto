@@ -762,7 +762,7 @@ const PresentationPage = () => {
                       {
                         position: "absolute",
                         bottom: -2.5,
-                        left: -2.5,
+                        right: -2.5,
                         width: 5,
                         height: 5,
                         backgroundColor: "black",
@@ -774,7 +774,7 @@ const PresentationPage = () => {
                       if (selectedElementId !== el.id) return;
                       resizeInfo.current = {
                         elementId: el.id,
-                        corner: 'bottom-left',
+                        corner: 'bottom-right',
                         startMouseX: e.clientX,
                         startMouseY: e.clientY,
                         startElX: el.x,
@@ -784,66 +784,37 @@ const PresentationPage = () => {
                       };
                     }}
                   ></div>
-                <div 
-                  style={
-                    {
-                      position:"absolute",
-                      bottom:-2.5,
-                      right:-2.5,
-                      width:5,
-                      height:5,
-                      backgroundColor:"black",
-                      cursor:"nwse-resize"
-                    }}
-                  onMouseDown={(e)=>{
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (selectedElementId !==el.id) return ;
-                    resizeInfo.current = {
-                      elementId: el.id,
-                      corner:'bottom-right',
-                      startMouseX: e.clientX,    
-                      startMouseY: e.clientY,
-                      startElX: el.x,            
-                      startElY: el.y,
-                      startElH:el.height,
-                      startElW:el.width,
-                    };
-                  }}
-                    ></div>
-              </>
-            )
-          }
+                </>
+              )
+              }
 
             </div>
-        ))}
+          ))}
         </div>
-        
+
         {presentation.slides.length > 1 && (
           <React.Fragment>
             <button
-            key="arrow-left"
-            disabled={currentSlideIndex === 0}
-            className={`absolute left-2 text-2xl ${
-                currentSlideIndex === 0
-                ? "opacity-30 cursor-not-allowed"
-                : "cursor-pointer hover:scale-110"
-            }`}
-            onClick={() => setCurrentSlideIndex((i) => i - 1)}
+              key="arrow-left"
+              disabled={currentSlideIndex === 0}
+              className={`absolute left-2 text-2xl ${currentSlideIndex === 0
+                  ? "opacity-30 cursor-not-allowed"
+                  : "cursor-pointer hover:scale-110"
+                }`}
+              onClick={() => setCurrentSlideIndex((i) => i - 1)}
             >
-            ←
+              ←
             </button>
             <button
-            key="arrow-right"
-            disabled={currentSlideIndex === presentation.slides.length - 1}
-            className={`absolute right-2 text-2xl ${
-                currentSlideIndex === presentation.slides.length - 1
-                ? "opacity-30 cursor-not-allowed"
-                : "cursor-pointer hover:scale-110"
-            }`}
-            onClick={() => setCurrentSlideIndex((i) => i + 1)}
+              key="arrow-right"
+              disabled={currentSlideIndex === presentation.slides.length - 1}
+              className={`absolute right-2 text-2xl ${currentSlideIndex === presentation.slides.length - 1
+                  ? "opacity-30 cursor-not-allowed"
+                  : "cursor-pointer hover:scale-110"
+                }`}
+              onClick={() => setCurrentSlideIndex((i) => i + 1)}
             >
-            →
+              →
             </button>
           </React.Fragment>
         )}
@@ -852,34 +823,34 @@ const PresentationPage = () => {
       <div className="flex gap-3 mt-4">
         <Button onClick={() => setShowSlidePanel(true)}>Slide Panel</Button>
         <Button onClick={handleAddSlide}>+ Add Slide</Button>
-        <Button onClick={()=>{setShowAddText(true)}}>+ Add Text</Button>
-        <Button onClick={()=>{setShowAddImage(true)}}>+ Add image</Button>
-        <Button onClick={()=>{setShowAddVideo(true)}}>+ Add Video</Button>
-        <Button onClick={()=>{setShowAddCode(true)}}>+ Add Code</Button>
-        <Button onClick={()=>{setShowBackground(true)}}>+ Add background</Button>
+        <Button onClick={() => { setShowAddText(true) }}>+ Add Text</Button>
+        <Button onClick={() => { setShowAddImage(true) }}>+ Add image</Button>
+        <Button onClick={() => { setShowAddVideo(true) }}>+ Add Video</Button>
+        <Button onClick={() => { setShowAddCode(true) }}>+ Add Code</Button>
+        <Button onClick={() => { setShowBackground(true) }}>+ Add background</Button>
         <Button variant="destructive" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
 
-      <div className="ml-auto w-64">
-        <select
-          className="border rounded px-2 py-1 w-full bg-white"
-          value={slide.transition}
-          onChange={async (e) => {
-            const value = e.target.value as 'none' | 'slide-left' | 'slide-right';
+        <div className="ml-auto w-64">
+          <select
+            className="border rounded px-2 py-1 w-full bg-white"
+            value={slide.transition}
+            onChange={async (e) => {
+              const value = e.target.value as 'none' | 'slide-left' | 'slide-right';
 
-            const updatedSlides = presentation.slides.map((s, i) =>
-              i === currentSlideIndex ? { ...s, transition: value } : s
-            );
+              const updatedSlides = presentation.slides.map((s, i) =>
+                i === currentSlideIndex ? { ...s, transition: value } : s
+              );
 
-            await saveSlides(updatedSlides);
-          }}
-        >
-          <option value="none">No animation</option>
-          <option value="slide-right">Slide (from right)</option>
-          <option value="slide-left">Slide (from left)</option>
-        </select>
-      </div>
+              await saveSlides(updatedSlides);
+            }}
+          >
+            <option value="none">No animation</option>
+            <option value="slide-right">Slide (from right)</option>
+            <option value="slide-left">Slide (from left)</option>
+          </select>
+        </div>
       </div>
 
 
@@ -983,7 +954,7 @@ const PresentationPage = () => {
       )}
       {error && (
         <ErrorPopup message={error} onClose={() => setError(null)} />
-       )}
+      )}
        <div className="flex gap-2 mt-4 overflow-x-auto">
         {presentation.slides.map((s, index) => (
             <div
