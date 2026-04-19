@@ -586,36 +586,36 @@ const PresentationPage = () => {
     <div className="min-h-screen p-6 relative">
       <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
 
-      <div className="flex items-center gap-4">
-        <Button onClick={() => navigate("/dashboard")}>Back</Button>
+        <div className="flex items-center gap-4">
+          <Button onClick={() => navigate("/dashboard")}>Back</Button>
 
-        <h2 className="text-xl font-semibold">{presentation.name}</h2>
+          <h2 className="text-xl font-semibold">{presentation.name}</h2>
 
-        <Button size="sm" variant="outline" onClick={() => setEditingTitle(true)}>
-          Edit
-        </Button>
+          <Button size="sm" variant="outline" onClick={() => setEditingTitle(true)}>
+            Edit
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button onClick={() => setShowHistory(true)}>
+            History
+          </Button>
+
+          <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
+            Preview
+          </Button>
+
+          <Button
+            variant="destructive"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            Delete
+          </Button>
+        </div>
       </div>
-
-      <div className="flex items-center gap-3">
-        <Button onClick={() => setShowHistory(true)}>
-          History
-        </Button>
-
-        <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
-          Preview
-        </Button>
-
-        <Button
-          variant="destructive"
-          onClick={() => setShowDeleteConfirm(true)}
-        >
-          Delete
-        </Button>
-      </div>
-    </div>
 
       <div className="relative border h-100 flex items-center justify-center bg-gray-100">
-        <div className="absolute inset-0" onClick={()=>setSelectedElementId(null)} ref={slideRef} style={getBackgroundStyle()}>
+        <div className="absolute inset-0" onClick={() => setSelectedElementId(null)} ref={slideRef} style={getBackgroundStyle()}>
           {slide.elements.map((el) => (
             <div
               key={el.id}
@@ -628,161 +628,162 @@ const PresentationPage = () => {
                 zIndex: el.zIndex,
                 border: selectedElementId === el.id ? '2px solid blue' : 'none',
               }}
-              onContextMenu={async(e)=>{
+              onContextMenu={async (e) => {
                 e.preventDefault();
                 const updatedSlide = slide.elements.filter(
                   (element) => element.id !== el.id
                 );
-                const updatedSlides=presentation.slides.map((s,index)=>{
-                  return index===currentSlideIndex ? {...s,elements:updatedSlide}:s;
+                const updatedSlides = presentation.slides.map((s, index) => {
+                  return index === currentSlideIndex ? { ...s, elements: updatedSlide } : s;
                 })
                 await saveSlides(updatedSlides);
               }}
-              onDoubleClick={()=> setEditingElement(el)}
-              onClick={(e)=>{
+              onDoubleClick={() => setEditingElement(el)}
+              onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setSelectedElementId(el.id)}}
-              onMouseDown={(e)=>{
+                setSelectedElementId(el.id)
+              }}
+              onMouseDown={(e) => {
                 e.stopPropagation();
-                if (selectedElementId !==el.id) return ;
+                if (selectedElementId !== el.id) return;
                 dragInfo.current = {
                   elementId: el.id,
-                  startMouseX: e.clientX,    
+                  startMouseX: e.clientX,
                   startMouseY: e.clientY,
-                  startElX: el.x,            
+                  startElX: el.x,
                   startElY: el.y,
                 };
               }}
             >
-            {el.type === 'text' && (
-              <div 
-              className="w-full h-full border border-gray-300  overflow-auto whitespace-normal text-center"
-              style={{
-                fontSize: `${el.fontSize}em`,
-                color:el.color,
-                fontFamily:el.fontFamily,
-              }}
-              >
-                {el.text}
-              </div>
-            )}
-
-            {el.type === 'image' && (
-              <img
-                src={el.src}
-                alt={el.alt}
-                className="w-full h-full object-contain"
-                draggable={false}
-              />
-            )}
-
-            {el.type === 'video' && (
-              <iframe
-                src={`${el.src}${el.autoplay ? '?autoplay=1' : ''}`}
-                className="w-full h-full"
-                allow="autoplay"
-                title="video"
-                style={{ pointerEvents: 'none' }}
-              />
-            )}
-
-            {el.type === 'code' && (() => {
-              const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
-              return (
-                <pre
-                  className="w-full h-full border border-gray-300 overflow-auto m-0"
-                  style={{ fontSize: `${el.fontSize}em`, whiteSpace: 'pre' , userSelect:'none'}}
+              {el.type === 'text' && (
+                <div
+                  className="w-full h-full border border-gray-300  overflow-auto whitespace-normal text-center"
+                  style={{
+                    fontSize: `${el.fontSize}em`,
+                    color: el.color,
+                    fontFamily: el.fontFamily,
+                  }}
                 >
-                  <code
-                    className={`hljs language-${highlighted.language}`}
-                    dangerouslySetInnerHTML={{ __html: highlighted.value }}
-                  />
-                </pre>
-              );
-            })()}
+                  {el.text}
+                </div>
+              )}
 
-            {selectedElementId==el.id &&(
-              <>
-                <div 
-                  style={{
-                      position:"absolute",
-                      top:-2.5,
-                      left:-2.5,
-                      width:5,
-                      height:5,
-                      backgroundColor:"black",
-                      cursor:"nwse-resize"
+              {el.type === 'image' && (
+                <img
+                  src={el.src}
+                  alt={el.alt}
+                  className="w-full h-full object-contain"
+                  draggable={false}
+                />
+              )}
+
+              {el.type === 'video' && (
+                <iframe
+                  src={`${el.src}${el.autoplay ? '?autoplay=1' : ''}`}
+                  className="w-full h-full"
+                  allow="autoplay"
+                  title="video"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
+
+              {el.type === 'code' && (() => {
+                const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
+                return (
+                  <pre
+                    className="w-full h-full border border-gray-300 overflow-auto m-0"
+                    style={{ fontSize: `${el.fontSize}em`, whiteSpace: 'pre', userSelect: 'none' }}
+                  >
+                    <code
+                      className={`hljs language-${highlighted.language}`}
+                      dangerouslySetInnerHTML={{ __html: highlighted.value }}
+                    />
+                  </pre>
+                );
+              })()}
+
+              {selectedElementId == el.id && (
+                <>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -2.5,
+                      left: -2.5,
+                      width: 5,
+                      height: 5,
+                      backgroundColor: "black",
+                      cursor: "nwse-resize"
                     }}
-                  onMouseDown={(e)=>{
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (selectedElementId !==el.id) return ;
-                    resizeInfo.current = {
-                      elementId: el.id,
-                      corner:'top-left',
-                      startMouseX: e.clientX,    
-                      startMouseY: e.clientY,
-                      startElX: el.x,            
-                      startElY: el.y,
-                      startElH:el.height,
-                      startElW:el.width,
-                    };
-                  }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'top-left',
+                        startMouseX: e.clientX,
+                        startMouseY: e.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
+                    }}
                   ></div>
-                <div 
-                  style={{
-                      position:"absolute",
-                      top:-2.5,
-                      right:-2.5,
-                      width:5,
-                      height:5,
-                      backgroundColor:"black",
-                      cursor:"nwse-resize"
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -2.5,
+                      right: -2.5,
+                      width: 5,
+                      height: 5,
+                      backgroundColor: "black",
+                      cursor: "nwse-resize"
                     }}
-                  onMouseDown={(e)=>{
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (selectedElementId !==el.id) return ;
-                    resizeInfo.current = {
-                      elementId: el.id,
-                      corner:'top-right',
-                      startMouseX: e.clientX,    
-                      startMouseY: e.clientY,
-                      startElX: el.x,            
-                      startElY: el.y,
-                      startElH:el.height,
-                      startElW:el.width,
-                    };
-                  }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'top-right',
+                        startMouseX: e.clientX,
+                        startMouseY: e.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
+                    }}
                   ></div>
-                <div 
-                  style={
-                    {
-                      position:"absolute",
-                      bottom:-2.5,
-                      left:-2.5,
-                      width:5,
-                      height:5,
-                      backgroundColor:"black",
-                      cursor:"nwse-resize"
+                  <div
+                    style={
+                      {
+                        position: "absolute",
+                        bottom: -2.5,
+                        left: -2.5,
+                        width: 5,
+                        height: 5,
+                        backgroundColor: "black",
+                        cursor: "nwse-resize"
+                      }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'bottom-left',
+                        startMouseX: e.clientX,
+                        startMouseY: e.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
                     }}
-                  onMouseDown={(e)=>{
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (selectedElementId !==el.id) return ;
-                    resizeInfo.current = {
-                      elementId: el.id,
-                      corner:'bottom-left',
-                      startMouseX: e.clientX,    
-                      startMouseY: e.clientY,
-                      startElX: el.x,            
-                      startElY: el.y,
-                      startElH:el.height,
-                      startElW:el.width,
-                    };
-                  }}
-                    ></div>
+                  ></div>
                 <div 
                   style={
                     {
