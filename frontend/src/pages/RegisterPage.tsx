@@ -7,28 +7,28 @@ import ErrorPopup from "../components/common/ErrorPopup";
 
 
 const RegisterPage=()=>{
-    const navigate =useNavigate();
-    const {login} =useAuth();
-    const [email, setEmail] = useState('');
-    const [name, setName] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword,setConfirmPassword]=useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+  const navigate =useNavigate();
+  const {login} =useAuth();
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword,setConfirmPassword]=useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async ()=>{
-            if(!email ||!password ||!name){
-                setError('Please enter email and password and name');
-                return ;
-            }
-            if (password!==confirmPassword){
-                setError('Password do not match')
-            }
+  const handleSubmit = async ()=>{
+    if(!email ||!password ||!name){
+      setError('Please enter email and password and name');
+      return ;
+    }
+    if (password!==confirmPassword){
+      setError('Password do not match')
+    }
 
-            setLoading(true);
-            try {
-                const data=await registerApi({email,password,name});
-                login(data.token)
+    setLoading(true);
+      try {
+        const data=await registerApi({email,password,name});
+        login(data.token)
                 navigate('/dashboard');
             }catch(error){
                 setError( error instanceof Error ? error.message : 'register failed');
