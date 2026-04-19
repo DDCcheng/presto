@@ -12,7 +12,7 @@ import AddTextModal from "@/components/common/slides/AddTextModal";
 import AddImageModal from "@/components/common/slides/AddImageModal";
 import AddVideoModal from "@/components/common/slides/AddVideoModal";
 import AddBackgroundModal from "@/components/common/slides/AddBackGroundModal";
-import type{ BackgroundStyle } from "../types";
+import type { BackgroundStyle } from "../types";
 
 //plugin for code recongnising
 import hljs from 'highlight.js/lib/core';
@@ -31,7 +31,7 @@ const PresentationPage = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
-  const slideRef=useRef<HTMLDivElement>(null);
+  const slideRef = useRef<HTMLDivElement>(null);
 
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -39,17 +39,17 @@ const PresentationPage = () => {
   const [editingTitle, setEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [editingElement,setEditingElement]=useState<SlideElement | null>(null);
-  const [selectedElementId,setSelectedElementId]=useState<string|null>('');
+  const [editingElement, setEditingElement] = useState<SlideElement | null>(null);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>('');
   const lastSave = useRef<number>(0);
   const saveInterval = 60000;
 
   // slide elements
   const [showAddText, setShowAddText] = useState(false);
-  const [showAddImage,setShowAddImage]=useState(false);
-  const [showAddVideo,setShowAddVideo]=useState(false);
-  const [showAddCode,setShowAddCode]=useState(false);
-  const [showBackground,setShowBackground]=useState(false);
+  const [showAddImage, setShowAddImage] = useState(false);
+  const [showAddVideo, setShowAddVideo] = useState(false);
+  const [showAddCode, setShowAddCode] = useState(false);
+  const [showBackground, setShowBackground] = useState(false);
 
   const [showSlidePanel, setShowSlidePanel] = useState(false);
 
@@ -73,7 +73,7 @@ const PresentationPage = () => {
     setPresentation(prev => prev && { ...prev, defaultBackground: bg });
   };
   const getBackgroundStyle = () => {
-    if(!presentation) return;
+    if (!presentation) return;
     const bg = slide.background || presentation.defaultBackground;
     if (!bg) return {};
     if (bg.type === 'solid') return { backgroundColor: bg.color };
@@ -85,16 +85,16 @@ const PresentationPage = () => {
   //moving part
   const dragInfo = useRef<{
     elementId: string;
-    startMouseX: number;  
+    startMouseX: number;
     startMouseY: number;
-    startElX: number;     
+    startElX: number;
     startElY: number;
   } | null>(null);
   //resizing part
   const resizeInfo = useRef<{
     elementId: string;
     corner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-    startMouseX: number; 
+    startMouseX: number;
     startMouseY: number;
     startElX: number;
     startElY: number;
@@ -116,124 +116,124 @@ const PresentationPage = () => {
   };
 
   //code element logic
-  const handleAddCode=async(width: number, height: number, code: string,fontSize:number)=>{
-    if(!presentation) return;
+  const handleAddCode = async (width: number, height: number, code: string, fontSize: number) => {
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newCodeElement = {
       id: crypto.randomUUID(),
-      type:'code',
-      x:0,y:0,
-      width:width,
-      height:height,
-      code:code,
-      fontSize:fontSize,
-      zIndex:maxZIndex+1 //max zindex of current element +1
+      type: 'code',
+      x: 0, y: 0,
+      width: width,
+      height: height,
+      code: code,
+      fontSize: fontSize,
+      zIndex: maxZIndex + 1 //max zindex of current element +1
     };
     const updatedElements = [...currentSlide.elements, newCodeElement];
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setShowAddCode(false)
   };
-  const handleEditCode =async (width: number, height: number, code: string,fontSize:number,x:number,y:number)=>{
+  const handleEditCode = async (width: number, height: number, code: string, fontSize: number, x: number, y: number) => {
     const EditingVideoElement = {
       ...editingElement,
-      x,y,width,height,code,fontSize
+      x, y, width, height, code, fontSize
     };
-    if(!presentation) return;
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const updatedElements = currentSlide.elements.map((el) =>
       el.id === editingElement?.id ? EditingVideoElement : el
     );
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setEditingElement(null)
-    
+
   };
 
   //video element logic
-  const handleAddVideo=async(width: number, height: number, src: string,autoplay:boolean)=>{
-    if(!presentation) return;
+  const handleAddVideo = async (width: number, height: number, src: string, autoplay: boolean) => {
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newVideoElement = {
       id: crypto.randomUUID(),
-      type:'video',
-      x:0,y:0,
-      width:width,
-      height:height,
-      src:src,
-      autoplay:autoplay,
-      zIndex:maxZIndex+1 //max zindex of current element +1
+      type: 'video',
+      x: 0, y: 0,
+      width: width,
+      height: height,
+      src: src,
+      autoplay: autoplay,
+      zIndex: maxZIndex + 1 //max zindex of current element +1
     };
     const updatedElements = [...currentSlide.elements, newVideoElement];
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setShowAddVideo(false)
   };
-  const handleEditVideo =async (width: number, height: number, src: string,autoplay:boolean,x:number,y:number)=>{
+  const handleEditVideo = async (width: number, height: number, src: string, autoplay: boolean, x: number, y: number) => {
     const EditingVideoElement = {
       ...editingElement,
-      x,y,width,height,src,autoplay
+      x, y, width, height, src, autoplay
     };
-    if(!presentation) return;
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const updatedElements = currentSlide.elements.map((el) =>
       el.id === editingElement?.id ? EditingVideoElement : el
     );
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setEditingElement(null)
   };
 
   //image element logic
-  const handleAddImage=async(width: number, height: number, src: string,alt:string)=>{
-    if(!presentation) return;
+  const handleAddImage = async (width: number, height: number, src: string, alt: string) => {
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newImageElement = {
       id: crypto.randomUUID(),
-      type:'image',
-      x:0,y:0,
-      width:width,
-      height:height,
-      src:src,
-      alt:alt,
-      zIndex:maxZIndex+1 //max zindex of current element +1
+      type: 'image',
+      x: 0, y: 0,
+      width: width,
+      height: height,
+      src: src,
+      alt: alt,
+      zIndex: maxZIndex + 1 //max zindex of current element +1
     };
     const updatedElements = [...currentSlide.elements, newImageElement];
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setShowAddImage(false)
   };
-  const handleEditImage =async (width: number, height: number, src: string,alt:string,x:number,y:number)=>{
+  const handleEditImage = async (width: number, height: number, src: string, alt: string, x: number, y: number) => {
     const EditingImageElement = {
       ...editingElement,
-      x,y,width,height,src,alt
+      x, y, width, height, src, alt
     };
-    if(!presentation) return;
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const updatedElements = currentSlide.elements.map((el) =>
       el.id === editingElement?.id ? EditingImageElement : el
     );
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setEditingElement(null)
@@ -241,43 +241,43 @@ const PresentationPage = () => {
 
 
   //text element logic
-  const handleAddText=async(text: string, color: string, width: number, height: number, fontSize: number,x :number,y:number,fontFamily:string)=>{
-    if(!presentation) return;
+  const handleAddText = async (text: string, color: string, width: number, height: number, fontSize: number, x: number, y: number, fontFamily: string) => {
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newTextElement = {
       id: crypto.randomUUID(),
-      type:'text',
-      x:0,y:0,
-      width:width,
-      height:height,
-      text:text,
-      color:color,
-      fontSize:fontSize,
-      fontFamily:fontFamily,
-      zIndex:maxZIndex+1 //max zindex of current element +1
+      type: 'text',
+      x: 0, y: 0,
+      width: width,
+      height: height,
+      text: text,
+      color: color,
+      fontSize: fontSize,
+      fontFamily: fontFamily,
+      zIndex: maxZIndex + 1 //max zindex of current element +1
     };
     const updatedElements = [...currentSlide.elements, newTextElement];
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setShowAddText(false)
   };
-  const handleEditText =async (text: string, color: string, width: number, height: number, fontSize: number,x:number,y:number,fontFamily:string)=>{
+  const handleEditText = async (text: string, color: string, width: number, height: number, fontSize: number, x: number, y: number, fontFamily: string) => {
     const EditingTextElement = {
       ...editingElement,
-      x,y,width,height,text,color,fontSize,fontFamily
+      x, y, width, height, text, color, fontSize, fontFamily
     };
-    if(!presentation) return;
+    if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const updatedElements = currentSlide.elements.map((el) =>
       el.id === editingElement?.id ? EditingTextElement : el
     );
-    const updatedSlides=presentation.slides.map((s,index)=>{
-      return index===currentSlideIndex ? {...s,elements:updatedElements}:s;
+    const updatedSlides = presentation.slides.map((s, index) => {
+      return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
     await saveSlides(updatedSlides);
     setEditingElement(null)
@@ -321,12 +321,12 @@ const PresentationPage = () => {
   //add element moving logic
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if ( !slideRef.current || !presentation) return;
+      if (!slideRef.current || !presentation) return;
       e.preventDefault();
       const rect = slideRef.current.getBoundingClientRect();
       const currentSlide = presentation.slides[currentSlideIndex];
 
-      if(dragInfo.current){
+      if (dragInfo.current) {
         const deltaX = ((e.clientX - dragInfo.current.startMouseX) / rect.width) * 100;
         const deltaY = ((e.clientY - dragInfo.current.startMouseY) / rect.height) * 100;
         // new start= old one + moving distance
@@ -399,13 +399,13 @@ const PresentationPage = () => {
       }
     }
 
-    
+
     // how many pixels mouse moved
     const handleMouseUp = () => {
-      if (!dragInfo.current && !resizeInfo.current) return ;
-      dragInfo.current=null;
-      resizeInfo.current=null;
-      if (presentation){
+      if (!dragInfo.current && !resizeInfo.current) return;
+      dragInfo.current = null;
+      resizeInfo.current = null;
+      if (presentation) {
         saveSlides(presentation.slides);
       }
     };
@@ -420,74 +420,74 @@ const PresentationPage = () => {
 
 
   if (!presentation) return <div>Loading...</div>;
-const saveSlides = async (slides: any[]) => {
-  if (!token) return;
+  const saveSlides = async (slides: any[]) => {
+    if (!token) return;
 
-  const data = await getStoreApi(token);
+    const data = await getStoreApi(token);
 
-  const now = Date.now();
-  const shouldSaveHistory =
-  lastSave.current === 0 || now - lastSave.current > saveInterval;
+    const now = Date.now();
+    const shouldSaveHistory =
+      lastSave.current === 0 || now - lastSave.current > saveInterval;
 
-  const updated = data.store.presentations.map((p: Presentation) => {
-    if (p.id !== id) return p;
+    const updated = data.store.presentations.map((p: Presentation) => {
+      if (p.id !== id) return p;
 
-    let newHistory = p.history || [];
+      let newHistory = p.history || [];
 
-    if (shouldSaveHistory) {
-      console.log("Saving history:", shouldSaveHistory);
-      newHistory = [
-        {
-          id: crypto.randomUUID(),
-          timestamp: now,
-          slides: structuredClone(slides),
-          name: p.name,
-          description: p.description,
-          thumbnail: p.thumbnail,
-          defaultBackground: p.defaultBackground,
-        },
-        ...newHistory,
-      ];
+      if (shouldSaveHistory) {
+        console.log("Saving history:", shouldSaveHistory);
+        newHistory = [
+          {
+            id: crypto.randomUUID(),
+            timestamp: now,
+            slides: structuredClone(slides),
+            name: p.name,
+            description: p.description,
+            thumbnail: p.thumbnail,
+            defaultBackground: p.defaultBackground,
+          },
+          ...newHistory,
+        ];
 
-      lastSave.current = now;
-    }
+        lastSave.current = now;
+      }
 
-    return {
-      ...p,
-      slides,
-      history: newHistory,
-    };
-  });
+      return {
+        ...p,
+        slides,
+        history: newHistory,
+      };
+    });
 
-  await updateStoreApi(token, { presentations: updated });
+    await updateStoreApi(token, { presentations: updated });
 
-  setPresentation(prev => {
-    if (!prev) return prev;
+    setPresentation(prev => {
+      if (!prev) return prev;
 
-    let newHistory = prev.history || [];
+      let newHistory = prev.history || [];
 
-    if (shouldSaveHistory) {
-      newHistory = [
-        {
-          id: crypto.randomUUID(),
-          timestamp: now,
-          slides: structuredClone(slides),
-          name: prev.name,
-          description: prev.description,
-          thumbnail: prev.thumbnail,
-          defaultBackground: prev.defaultBackground,
-        },
-        ...newHistory,
-      ];
-    }
+      if (shouldSaveHistory) {
+        newHistory = [
+          {
+            id: crypto.randomUUID(),
+            timestamp: now,
+            slides: structuredClone(slides),
+            name: prev.name,
+            description: prev.description,
+            thumbnail: prev.thumbnail,
+            defaultBackground: prev.defaultBackground,
+          },
+          ...newHistory,
+        ];
+      }
 
-    return {
-      ...prev,
-      slides,
-      history: newHistory,
-    };
-  });
-};
+      return {
+        ...prev,
+        slides,
+        history: newHistory,
+      };
+    });
+  };
 
   const handleAddSlide = async () => {
     const newSlide = {
