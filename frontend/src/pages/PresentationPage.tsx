@@ -127,14 +127,14 @@ const PresentationPage = () => {
     setShowAddCode(false)
   };
   const handleEditCode = async (width: number, height: number, code: string, fontSize: number) => {
-    const EditingVideoElement = {
+    const EditingCodeElement = {
       ...editingElement,
        width, height, code, fontSize
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const updatedElements = currentSlide.elements.map((el) =>
-      el.id === editingElement?.id ? EditingVideoElement : el
+      el.id === editingElement?.id ? EditingCodeElement : el
     );
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
