@@ -111,6 +111,7 @@ const PresentationPage = () => {
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newCodeElement = {
       id: crypto.randomUUID(),
+      x:0,y:0,
       type: 'code',
       width: width,
       height: height,
@@ -152,6 +153,7 @@ const PresentationPage = () => {
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newVideoElement = {
       id: crypto.randomUUID(),
+      x:0,y:0,
       type: 'video',
       width: width,
       height: height,
@@ -192,6 +194,7 @@ const PresentationPage = () => {
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newImageElement = {
       id: crypto.randomUUID(),
+      x:0,y:0,
       type: 'image',
       width: width,
       height: height,
@@ -233,6 +236,7 @@ const PresentationPage = () => {
       : Math.max(...currentSlide.elements.map(el => el.zIndex));
     const newTextElement = {
       id: crypto.randomUUID(),
+      x:0,y:0,
       type: 'text',
       width: width,
       height: height,
@@ -406,68 +410,44 @@ const PresentationPage = () => {
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [currentSlideIndex, presentation]);
-
-
   if (!presentation) return <div>Loading...</div>;
+
   const saveSlides = async (slides: any[]) => {
     if (!token) return;
     const data = await getStoreApi(token);
     const now = Date.now();
     const shouldSaveHistory =
       lastSave.current === 0 || now - lastSave.current > saveInterval;
+    const newHistoryEntry = shouldSaveHistory ? {
+      id: crypto.randomUUID(),
+      timestamp: now,
+      slides: structuredClone(slides),
+      name: presentation?.name || '',
+      description: presentation?.description || '',
+      thumbnail: presentation?.thumbnail || '',
+      defaultBackground: presentation?.defaultBackground,
+    } : null;
+
+    if (shouldSaveHistory) {
+      lastSave.current = now;
+    }
 
     const updated = data.store.presentations.map((p: Presentation) => {
       if (p.id !== id) return p;
-      let newHistory = p.history || [];
-      if (shouldSaveHistory) {
-        newHistory = [
-          {
-            id: crypto.randomUUID(),
-            timestamp: now,
-            slides: structuredClone(slides),
-            name: p.name,
-            description: p.description,
-            thumbnail: p.thumbnail,
-            defaultBackground: p.defaultBackground,
-          },
-          ...newHistory,
-        ];
-        lastSave.current = now;
-      }
-
       return {
-        ...p,
-        slides,
-        history: newHistory,
-      };
+      ...p,
+      slides,
+      history: newHistoryEntry ? [newHistoryEntry, ...(p.history || [])] : (p.history || []),
+    };
     });
-
     await updateStoreApi(token, { presentations: updated });
 
     setPresentation(prev => {
       if (!prev) return prev;
-
-      let newHistory = prev.history || [];
-
-      if (shouldSaveHistory) {
-        newHistory = [
-          {
-            id: crypto.randomUUID(),
-            timestamp: now,
-            slides: structuredClone(slides),
-            name: prev.name,
-            description: prev.description,
-            thumbnail: prev.thumbnail,
-            defaultBackground: prev.defaultBackground,
-          },
-          ...newHistory,
-        ];
-      }
-
       return {
         ...prev,
         slides,
-        history: newHistory,
+        history: newHistoryEntry ?[newHistoryEntry,...(prev.history ||[])]:(prev.history||[]),
       };
     });
   };
@@ -641,7 +621,7 @@ const PresentationPage = () => {
             >
               {el.type === 'text' && (
                 <div
-                  className="w-full h-full border border-gray-300  overflow-auto whitespace-normal text-center"
+                  className="w-full h-full border border-gray-300  overflow-auto whitespace-normal text-left"
                   style={{
                     fontSize: `${window.innerWidth < 640 ? el.fontSize * 0.7 : el.fontSize}em`,
                     color: el.color,
