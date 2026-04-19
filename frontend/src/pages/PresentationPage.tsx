@@ -11,7 +11,7 @@ import ErrorPopup from "../components/common/ErrorPopup";
 import AddTextModal from "@/components/common/slides/AddTextModal";
 import AddImageModal from "@/components/common/slides/AddImageModal";
 import AddVideoModal from "@/components/common/slides/AddVideoModal";
-import AddBackgroundModal from "@/components/common/slides/AddBackGroundModal";
+import AddBackgroundModal from "@/components/common/slides/AddBackgroundModal";
 import type { BackgroundStyle } from "../types";
 
 //plugin for code recongnising
@@ -21,7 +21,6 @@ import python from 'highlight.js/lib/languages/python';
 import c from 'highlight.js/lib/languages/c';
 import 'highlight.js/styles/github.css';
 import AddCodeModal from "@/components/common/slides/AddCodeModal";
-import NewPresentation from "@/components/common/NewPresentationModal";
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('python', python);
 hljs.registerLanguage('c', c);
