@@ -111,7 +111,6 @@ const PresentationPage = () => {
     const newCodeElement = {
       id: crypto.randomUUID(),
       type: 'code',
-      x: 0, y: 0,
       width: width,
       height: height,
       code: code,
@@ -125,10 +124,10 @@ const PresentationPage = () => {
     await saveSlides(updatedSlides);
     setShowAddCode(false)
   };
-  const handleEditCode = async (width: number, height: number, code: string, fontSize: number, x: number, y: number) => {
+  const handleEditCode = async (width: number, height: number, code: string, fontSize: number) => {
     const EditingVideoElement = {
       ...editingElement,
-      x, y, width, height, code, fontSize
+       width, height, code, fontSize
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -153,7 +152,6 @@ const PresentationPage = () => {
     const newVideoElement = {
       id: crypto.randomUUID(),
       type: 'video',
-      x: 0, y: 0,
       width: width,
       height: height,
       src: src,
@@ -167,10 +165,10 @@ const PresentationPage = () => {
     await saveSlides(updatedSlides);
     setShowAddVideo(false)
   };
-  const handleEditVideo = async (width: number, height: number, src: string, autoplay: boolean, x: number, y: number) => {
+  const handleEditVideo = async (width: number, height: number, src: string, autoplay: boolean) => {
     const EditingVideoElement = {
       ...editingElement,
-      x, y, width, height, src, autoplay
+      width, height, src, autoplay
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -194,7 +192,6 @@ const PresentationPage = () => {
     const newImageElement = {
       id: crypto.randomUUID(),
       type: 'image',
-      x: 0, y: 0,
       width: width,
       height: height,
       src: src,
@@ -208,10 +205,10 @@ const PresentationPage = () => {
     await saveSlides(updatedSlides);
     setShowAddImage(false)
   };
-  const handleEditImage = async (width: number, height: number, src: string, alt: string, x: number, y: number) => {
+  const handleEditImage = async (width: number, height: number, src: string, alt: string, ) => {
     const EditingImageElement = {
       ...editingElement,
-      x, y, width, height, src, alt
+      width, height, src, alt
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -227,7 +224,7 @@ const PresentationPage = () => {
 
 
   //text element logic
-  const handleAddText = async (text: string, color: string, width: number, height: number, fontSize: number, x: number, y: number, fontFamily: string) => {
+  const handleAddText = async (text: string, color: string, width: number, height: number, fontSize: number, fontFamily: string) => {
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
@@ -236,7 +233,6 @@ const PresentationPage = () => {
     const newTextElement = {
       id: crypto.randomUUID(),
       type: 'text',
-      x: 0, y: 0,
       width: width,
       height: height,
       text: text,
@@ -252,10 +248,10 @@ const PresentationPage = () => {
     await saveSlides(updatedSlides);
     setShowAddText(false)
   };
-  const handleEditText = async (text: string, color: string, width: number, height: number, fontSize: number, x: number, y: number, fontFamily: string) => {
+  const handleEditText = async (text: string, color: string, width: number, height: number, fontSize: number, fontFamily: string) => {
     const EditingTextElement = {
       ...editingElement,
-      x, y, width, height, text, color, fontSize, fontFamily
+      width, height, text, color, fontSize, fontFamily
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -792,7 +788,7 @@ const PresentationPage = () => {
                       if (selectedElementId !== el.id) return;
                       resizeInfo.current = {
                         elementId: el.id,
-                        corner: 'bottom-right',
+                        corner: 'bottom-left',
                         startMouseX: e.clientX,
                         startMouseY: e.clientY,
                         startElX: el.x,

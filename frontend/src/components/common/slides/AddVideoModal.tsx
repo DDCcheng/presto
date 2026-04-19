@@ -18,17 +18,13 @@ interface AddVideoModalProps {
     width: number;
     height: number;
     src:string,
-    autoplay:boolean,
-    x: number;
-    y: number;
+    autoplay:boolean
   };
   onClose: () => void;        
-  onSubmit: ( width:number, height :number,src:string,autoplay:boolean,x: number, y: number) => void;
+  onSubmit: ( width:number, height :number,src:string,autoplay:boolean) => void;
 }
 
 const AddVideoModal=({onClose,onSubmit,initialData}:AddVideoModalProps)=>{
-  const [x, setX] = useState(initialData?.x ?? 0);
-  const [y, setY] = useState(initialData?.y ?? 0);
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [src,setSrc]=useState(initialData?.src ??'');
@@ -59,18 +55,12 @@ const AddVideoModal=({onClose,onSubmit,initialData}:AddVideoModalProps)=>{
               <Label htmlFor="height">height</Label>
               <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
             </Field>
-            {initialData && <Field>
-              <Label htmlFor="x-y">position</Label>
-              <Input  type="number" placeholder="x" value={x} onChange={(e) => setX(Number(e.target.value))} />
-              <Input  type="number" placeholder="y" value={y} onChange={(e) => setY(Number(e.target.value))} />
-            </Field>
-            }
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
-            <Button onClick={() => onSubmit( width, height, src,autoplay,x,y,)}>
+            <Button onClick={() => onSubmit( width, height, src,autoplay)}>
               {initialData ? 'Save' : 'Create'}
             </Button>
           </DialogFooter>

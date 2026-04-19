@@ -22,16 +22,12 @@ interface AddCodeModalProps {
     height: number;
     code:string,
     fontSize:number
-    x: number;
-    y: number;
   };
   onClose: () => void;        
-  onSubmit: ( width:number, height :number,code:string,fontSize:number,x: number, y: number) => void;
+  onSubmit: ( width:number, height :number,code:string,fontSize:number) => void;
 }
 
 const AddCodeModal=({onClose,onSubmit,initialData}:AddCodeModalProps)=>{
-  const [x, setX] = useState(initialData?.x ?? 0);
-  const [y, setY] = useState(initialData?.y ?? 0);
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [code,SetCode]=useState(initialData?.code ??'');
@@ -63,18 +59,12 @@ const AddCodeModal=({onClose,onSubmit,initialData}:AddCodeModalProps)=>{
               <Label htmlFor="height">height</Label>
               <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
             </Field>
-            {initialData && <Field>
-              <Label htmlFor="x-y">position</Label>
-              <Input  type="number" placeholder="x" value={x} onChange={(e) => setX(Number(e.target.value))} />
-              <Input  type="number" placeholder="y" value={y} onChange={(e) => setY(Number(e.target.value))} />
-            </Field>
-            }
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
-            <Button onClick={() => onSubmit( width, height ,code,fontSize,x, y)}>
+            <Button onClick={() => onSubmit( width, height ,code,fontSize)}>
               {initialData ? 'Save' : 'Create'}
             </Button>
           </DialogFooter>

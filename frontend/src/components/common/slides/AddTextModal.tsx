@@ -25,22 +25,18 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react";
 interface AddTextModalProps {
   onClose: () => void;        
-  onSubmit: (text: string, color: string, width:number, height :number,fontSize:number,x :number,y:number,fontFamily:string) => void; 
+  onSubmit: (text: string, color: string, width:number, height :number,fontSize:number,fontFamily:string) => void; 
   initialData?: {
     text: string;
     color: string;
     width: number;
     height: number;
     fontSize: number;
-    x: number;
-    y: number;
     fontFamily:string,
   };
 }
 
 const AddTextModal=({onClose,onSubmit,initialData}:AddTextModalProps)=>{
-  const [x, setX] = useState(initialData?.x ?? 0);
-  const [y, setY] = useState(initialData?.y ?? 0);
   const [text,setText]=useState(initialData?.text ??'');
   const [color,setColor]=useState(initialData?.color ??'#000000');
   const [width,setWidth]=useState(initialData?.width ??30);
@@ -92,18 +88,12 @@ const AddTextModal=({onClose,onSubmit,initialData}:AddTextModalProps)=>{
               <Label htmlFor="height">height</Label>
               <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
             </Field>
-            {initialData && <Field>
-              <Label htmlFor="x-y">position</Label>
-              <Input  type="number" placeholder="x" value={x} onChange={(e) => setX(Number(e.target.value))} />
-              <Input  type="number" placeholder="y" value={y} onChange={(e) => setY(Number(e.target.value))} />
-            </Field>
-            }
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
-            <Button onClick={() => onSubmit(text, color, width, height, fontSize, x, y,fontFamily)}>
+            <Button onClick={() => onSubmit(text, color, width, height, fontSize,fontFamily)}>
               {initialData ? 'Save' : 'Create'}
             </Button>
           </DialogFooter>
