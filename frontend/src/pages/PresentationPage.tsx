@@ -955,171 +955,169 @@ const PresentationPage = () => {
       {error && (
         <ErrorPopup message={error} onClose={() => setError(null)} />
       )}
-       <div className="flex gap-2 mt-4 overflow-x-auto">
-        {presentation.slides.map((s, index) => (
-            <div
-            key={s.id}
-            onClick={() => setCurrentSlideIndex(index)}
-            className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${
-                index === currentSlideIndex
-                ? "border-blue-500 ring-2 ring-blue-400"
-                : "border-gray-300"
-            }`}
-            >
-            <span className="text-sm">{`Slide ${index+1}`}</span>
-            </div>
-        ))}
-        </div>
-
-        {showHistory && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white w-2/3 h-3/4 p-4 rounded flex flex-col">
-
-      <div className="flex justify-between mb-4">
-        <h2 className="text-lg font-bold">History</h2>
-        <Button onClick={() => setShowHistory(false)}>Close</Button>
-      </div>
-
-      <div className="overflow-auto flex flex-col gap-3">
-        {(presentation.history || [])
-          .slice()
-          .reverse()
-          .map((h: PresentationHistory) => (
-            <div
-              key={h.id}
-              className="border p-3 flex justify-between items-center"
-            >
-              <div>
-                <div className="text-sm font-semibold">
-                  {new Date(h.timestamp).toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {h.slides.length} slides
-                </div>
-              </div>
-
-              <Button onClick={() => handleRestoreHistory(h)}>
-                Restore
-              </Button>
-            </div>
-          ))}
-      </div>
-
-    </div>
-  </div>
-)}
-
-        {showSlidePanel && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white w-4/5 h-4/5 rounded p-4 flex flex-col">
-
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">Slides</h2>
-        <Button onClick={() => setShowSlidePanel(false)}>Close</Button>
-      </div>
-
-      <div className="flex-1 overflow-auto grid grid-cols-4 gap-4">
+      <div className="flex gap-2 mt-4 overflow-x-auto">
         {presentation.slides.map((s, index) => (
           <div
             key={s.id}
-            draggable
-            //pick up slide
-            onDragStart={() => {
-              setDraggedIndex(index);
-            }}
-            //move it around 
-            onDragOver={(e) => {
-              e.preventDefault();
-            }}
-            onDrop={async () => {
-              if(draggedSlide == null || draggedSlide == index){
-                return;
-              }
-              else{
-                const newSlideSet = [...presentation.slides];
-                const [removedSlide] = newSlideSet.splice(draggedSlide, 1);
-                newSlideSet.splice(index, 0, removedSlide);
-
-                await saveSlides(newSlideSet);
-                setDraggedIndex(null);
-              }
-            }}
-            onClick={() => {
-              setCurrentSlideIndex(index);
-              setShowSlidePanel(false);
-            }}
-             className={`border shadow-sm bg-white cursor-pointer ${
-              index === currentSlideIndex
+            onClick={() => setCurrentSlideIndex(index)}
+            className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${index === currentSlideIndex
                 ? "border-blue-500 ring-2 ring-blue-400"
                 : "border-gray-300"
               }`}
           >
-            <div className="w-full aspect-video relative bg-gray-100">
-              <div
-                className="relative w-full h-full"
-                style={getSlideBackgroundStyle(s)}
-              >
-                {s.elements.map((el) => (
-                  <div
-                    key={el.id}
-                    style={{
-                      position: "absolute",
-                      left: `${el.x}%`,
-                      top: `${el.y}%`,
-                      width: `${el.width}%`,
-                      height: `${el.height}%`,
-                    }}
-                  >
-                    {el.type === "text" && (
-                      <div
-                        style={{
-                          fontSize: `${el.fontSize * 0.3}em`,
-                          overflow: "hidden",
-                        }}
-                      >
-                        {el.text}
-                      </div>
-                    )}
-
-                    {el.type === "image" && (
-                      <img
-                        src={el.src}
-                        className="w-full h-full object-contain"
-                      />
-                    )}
-                    {el.type === "code" && (() => {
-                      const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
-
-                      return (
-                        <pre
-                          style={{
-                            fontSize: `${el.fontSize * 0.25}em`, // smaller for thumbnail
-                            margin: 0,
-                            padding: "2px",
-                            overflow: "hidden",
-                            whiteSpace: "pre-wrap",
-                            lineHeight: 1.1,
-                          }}
-                          className="hljs"
-                        >
-                          <code
-                            className={`language-${highlighted.language}`}
-                            dangerouslySetInnerHTML={{ __html: highlighted.value }}
-                          />
-                        </pre>
-                      );
-                    })()}
-                  </div>
-                ))}
-              </div>
-          </div>
+            <span className="text-sm">{`Slide ${index + 1}`}</span>
           </div>
         ))}
       </div>
 
-    </div>
-  </div>
-)}
+      {showHistory && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white w-2/3 h-3/4 p-4 rounded flex flex-col">
+
+            <div className="flex justify-between mb-4">
+              <h2 className="text-lg font-bold">History</h2>
+              <Button onClick={() => setShowHistory(false)}>Close</Button>
+            </div>
+
+            <div className="overflow-auto flex flex-col gap-3">
+              {(presentation.history || [])
+                .slice()
+                .reverse()
+                .map((h: PresentationHistory) => (
+                  <div
+                    key={h.id}
+                    className="border p-3 flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="text-sm font-semibold">
+                        {new Date(h.timestamp).toLocaleString()}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {h.slides.length} slides
+                      </div>
+                    </div>
+
+                    <Button onClick={() => handleRestoreHistory(h)}>
+                      Restore
+                    </Button>
+                  </div>
+                ))}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {showSlidePanel && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white w-4/5 h-4/5 rounded p-4 flex flex-col">
+
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold">Slides</h2>
+              <Button onClick={() => setShowSlidePanel(false)}>Close</Button>
+            </div>
+
+            <div className="flex-1 overflow-auto grid grid-cols-4 gap-4">
+              {presentation.slides.map((s, index) => (
+                <div
+                  key={s.id}
+                  draggable
+                  //pick up slide
+                  onDragStart={() => {
+                    setDraggedIndex(index);
+                  }}
+                  //move it around 
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={async () => {
+                    if (draggedSlide == null || draggedSlide == index) {
+                      return;
+                    }
+                    else {
+                      const newSlideSet = [...presentation.slides];
+                      const [removedSlide] = newSlideSet.splice(draggedSlide, 1);
+                      newSlideSet.splice(index, 0, removedSlide);
+
+                      await saveSlides(newSlideSet);
+                      setDraggedIndex(null);
+                    }
+                  }}
+                  onClick={() => {
+                    setCurrentSlideIndex(index);
+                    setShowSlidePanel(false);
+                  }}
+                  className={`border shadow-sm bg-white cursor-pointer ${index === currentSlideIndex
+                      ? "border-blue-500 ring-2 ring-blue-400"
+                      : "border-gray-300"
+                    }`}
+                >
+                  <div className="w-full aspect-video relative bg-gray-100">
+                    <div
+                      className="relative w-full h-full"
+                      style={getSlideBackgroundStyle(s)}
+                    >
+                      {s.elements.map((el) => (
+                        <div
+                          key={el.id}
+                          style={{
+                            position: "absolute",
+                            left: `${el.x}%`,
+                            top: `${el.y}%`,
+                            width: `${el.width}%`,
+                            height: `${el.height}%`,
+                          }}
+                        >
+                          {el.type === "text" && (
+                            <div
+                              style={{
+                                fontSize: `${el.fontSize * 0.3}em`,
+                                overflow: "hidden",
+                              }}
+                            >
+                              {el.text}
+                            </div>
+                          )}
+
+                          {el.type === "image" && (
+                            <img
+                              src={el.src}
+                              className="w-full h-full object-contain"
+                            />
+                          )}
+                          {el.type === "code" && (() => {
+                            const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
+
+                            return (
+                              <pre
+                                style={{
+                                  fontSize: `${el.fontSize * 0.25}em`, // smaller for thumbnail
+                                  margin: 0,
+                                  padding: "2px",
+                                  overflow: "hidden",
+                                  whiteSpace: "pre-wrap",
+                                  lineHeight: 1.1,
+                                }}
+                                className="hljs"
+                              >
+                                <code
+                                  className={`language-${highlighted.language}`}
+                                  dangerouslySetInnerHTML={{ __html: highlighted.value }}
+                                />
+                              </pre>
+                            );
+                          })()}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };
