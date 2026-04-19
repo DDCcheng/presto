@@ -29,7 +29,7 @@ export interface PresentationHistory {
   name: string;
   description: string;
   thumbnail: string;
-  defaultBackground: BackgroundStyle;
+  defaultBackground?: BackgroundStyle;
 }
 
 export interface Presentation{
@@ -38,7 +38,7 @@ export interface Presentation{
     description:string;
     thumbnail: string;
     slides:Slide[];
-    defaultBackground:BackgroundStyle;
+    defaultBackground?:BackgroundStyle;
     history?: PresentationHistory[];
 }
 

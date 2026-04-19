@@ -44,7 +44,8 @@ const DashboardPage=()=>{
       slides:[{
         id: crypto.randomUUID(),
         elements: [],
-        background: ''
+        background: '',
+        transition:'none',
       }]
     };
     const updatePresentation=[...presentations,newPresentation];// just combine newpre with oldpres,no updating, need setPresentation to update,its just a combination
