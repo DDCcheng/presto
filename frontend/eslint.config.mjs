@@ -4,12 +4,20 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
 
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
+import { defineConfig } from "eslint/config";
+import tseslint from "typescript-eslint";
 
 export default defineConfig(
   tseslint.configs.recommended,
-  { ignores: ["dist", "src/__test__", "**/*config.js"] },
+  {
+    ignores: [
+      "dist",
+      "src/__test__",
+      "**/*config.js",
+      "src/components/ui/**",
+      "**/*config.ts",
+    ],
+  },
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
@@ -34,14 +42,21 @@ export default defineConfig(
       ...reactHooks.configs.recommended.rules,
       "@typescript-eslint/no-explicit-any": "error",
       "react-hooks/exhaustive-deps": "off",
-      "no-unused-vars": ["error", { 
-        "argsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_"
-      }],
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       "react/jsx-no-target-blank": ["error", { enforceDynamicLinks: "always" }],
       "react-refresh/only-export-components": [
         "error",
-        { allowConstantExport: true },
+        {
+          allowConstantExport: true,
+          allowExportNames: ["AuthProvider", "AuthContext"],
+        },
       ],
       "react/no-unstable-nested-components": ["error", { allowAsProps: true }],
       "prefer-arrow-callback": [
@@ -56,5 +71,3 @@ export default defineConfig(
     },
   },
 );
-
-

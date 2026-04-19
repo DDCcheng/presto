@@ -2,7 +2,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getStore as getStoreApi } from "../services/api";
-import type { Presentation } from "../types";
+import type { Presentation, Slide, SlideElement } from "../types";
 
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
@@ -62,28 +62,29 @@ const PreviewPage = () => {
       setSearchParams({ slide: String(safeIndex) });
     }, 300);
   };
-
-
-  const fetchData = async () => {
-    if (!token) return;
-
-    const data = await getStoreApi(token);
-    const found = data.store.presentations.find(
-      (p: Presentation) => p.id === id
-    );
-
-    setPresentation(found ?? null);
-  };
-
   useEffect(() => {
+    let cancelled = false;
+    const fetchData = async () => {
+      if (!token) return;
+      const data = await getStoreApi(token);
+      const found = data.store.presentations.find(
+        (p: Presentation) => p.id === id
+      );
+      if (cancelled) return;
+      if (found) {
+        setPresentation(found);
+        const urlSlide = Number(searchParams.get("slide")) || 0;
+        const safeIndex = Math.max(0, Math.min(urlSlide, found.slides.length - 1));
+        setCurrentSlideIndex(safeIndex);
+      }
+    };
     fetchData();
+    return () => { cancelled = true; };
   }, [token, id]);
-
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!presentation) return;
-
       if (e.key === "ArrowLeft" && currentSlideIndex > 0) {
         goToSlide(currentSlideIndex - 1);
       }
@@ -91,24 +92,9 @@ const PreviewPage = () => {
         goToSlide(currentSlideIndex + 1);
       }
     };
-
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [currentSlideIndex, presentation]);
-
-  useEffect(() => {
-    if (!presentation) return;
-
-    const urlSlide = Number(searchParams.get("slide")) || 0;
-
-    const safeIndex = Math.max(
-      0,
-      Math.min(urlSlide, presentation.slides.length - 1)
-    );
-
-    setCurrentSlideIndex(safeIndex);
-  }, [presentation]);
-
 
   if (!presentation) return <div>Loading...</div>;
 
@@ -144,8 +130,8 @@ const PreviewPage = () => {
     return { backgroundColor: "white" };
   };
 
-  const renderSlide = (s: any) =>
-    s.elements.map((el: any) => (
+  const renderSlide = (s: Slide) =>
+    s.elements.map((el: SlideElement) => (
       <div
         key={el.id}
         style={{
