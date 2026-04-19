@@ -101,19 +101,6 @@ const PresentationPage = () => {
     startElH: number;
   } | null>(null);
 
-  //saving presentation history 
-  const savePresentationHistory = (p: Presentation): PresentationHistory => {
-    return {
-      id: crypto.randomUUID(),
-      timestamp: Date.now(),
-      slides: structuredClone(p.slides),
-      name: p.name,
-      description: p.description,
-      thumbnail: p.thumbnail,
-      defaultBackground: p.defaultBackground,
-    };
-  };
-
   //code element logic
   const handleAddCode = async (width: number, height: number, code: string, fontSize: number) => {
     if (!presentation) return;
@@ -300,6 +287,10 @@ const PresentationPage = () => {
 
     fetchData();
   }, [token, id]);
+  // update slide number in url when changing slide
+  useEffect(() => {
+    navigate(`/presentation/${id}?slide=${currentSlideIndex+1}`, { replace: true });
+  }, [currentSlideIndex]);
   //add arrow function
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -347,6 +338,7 @@ const PresentationPage = () => {
           index === currentSlideIndex ? { ...s, elements: updatedElements } : s
         );
         setPresentation(prev => prev && { ...prev, slides: updatedSlides });
+        return;
       };
       // resizing part
       if (resizeInfo.current) {
@@ -783,6 +775,33 @@ const PresentationPage = () => {
                       };
                     }}
                   ></div>
+                  <div
+                    style={
+                      {
+                        position: "absolute",
+                        bottom: -2.5,
+                        left: -2.5,
+                        width: 5,
+                        height: 5,
+                        backgroundColor: "black",
+                        cursor: "nwse-resize"
+                      }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'bottom-right',
+                        startMouseX: e.clientX,
+                        startMouseY: e.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
+                    }}
+                  ></div>
                 </>
               )
               }
@@ -790,7 +809,6 @@ const PresentationPage = () => {
             </div>
           ))}
         </div>
-
         {presentation.slides.length > 1 && (
           <React.Fragment>
             <button

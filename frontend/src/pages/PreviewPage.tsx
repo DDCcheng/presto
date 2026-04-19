@@ -159,7 +159,7 @@ const PreviewPage = () => {
       >
         {el.type === "text" && (
           <div
-            className="w-full h-full  overflow-auto whitespace-normal text-center"
+            className="w-full h-full  overflow-auto whitespace-normal text-left"
             style={{
               fontSize: `${el.fontSize}em`,
               color: el.color,
