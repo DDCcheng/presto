@@ -36,10 +36,11 @@ const PresentationPage = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
+  const [newThumbnail, setNewThumbnail] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [editingElement, setEditingElement] = useState<SlideElement | null>(null);
-  const [selectedElementId, setSelectedElementId] = useState<string | null>('');
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const lastSave = useRef<number>(0);
   const saveInterval = 60000;
 
@@ -279,6 +280,7 @@ const PresentationPage = () => {
       }
       setPresentation(found);
       setNewTitle(found.name);
+      setNewThumbnail(found.thumbnail || '');
     };
 
     fetchData();
@@ -409,20 +411,15 @@ const PresentationPage = () => {
   if (!presentation) return <div>Loading...</div>;
   const saveSlides = async (slides: any[]) => {
     if (!token) return;
-
     const data = await getStoreApi(token);
-
     const now = Date.now();
     const shouldSaveHistory =
       lastSave.current === 0 || now - lastSave.current > saveInterval;
 
     const updated = data.store.presentations.map((p: Presentation) => {
       if (p.id !== id) return p;
-
       let newHistory = p.history || [];
-
       if (shouldSaveHistory) {
-        console.log("Saving history:", shouldSaveHistory);
         newHistory = [
           {
             id: crypto.randomUUID(),
@@ -435,7 +432,6 @@ const PresentationPage = () => {
           },
           ...newHistory,
         ];
-
         lastSave.current = now;
       }
 
@@ -516,12 +512,12 @@ const PresentationPage = () => {
     const data = await getStoreApi(token);
 
     const updated = data.store.presentations.map((p: Presentation) =>
-      p.id === id ? { ...p, name: newTitle } : p
+      p.id === id ? { ...p, name: newTitle,thumbnail:newThumbnail } : p
     );
 
     await updateStoreApi(token, { presentations: updated });
 
-    setPresentation((prev) => prev && { ...prev, name: newTitle });
+    setPresentation((prev) => prev && { ...prev, name: newTitle,thumbnail:newThumbnail });
     setEditingTitle(false);
   };
 
@@ -690,7 +686,7 @@ const PresentationPage = () => {
                 );
               })()}
 
-              {selectedElementId == el.id && (
+              {selectedElementId === el.id && (
                 <>
                   <div
                     style={{
@@ -804,6 +800,9 @@ const PresentationPage = () => {
 
             </div>
           ))}
+        </div>
+        <div className="absolute bottom-2 left-2 text-sm text-gray-500" style={{ zIndex: 999 }}>
+          {currentSlideIndex + 1}
         </div>
         {presentation.slides.length > 1 && (
           <React.Fragment>
@@ -958,6 +957,13 @@ const PresentationPage = () => {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
             />
+            <label className="text-sm text-gray-500">Thumbnail URL</label>
+              <input
+                className="border p-2 mb-4 w-full"
+                value={newThumbnail}
+                onChange={(e) => setNewThumbnail(e.target.value)}
+                placeholder="Thumbnail URL"
+              />
             <div className="flex gap-3">
               <Button onClick={handleTitleSave}>Save</Button>
               <Button onClick={() => setEditingTitle(false)}>
