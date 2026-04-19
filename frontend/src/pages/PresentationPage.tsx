@@ -583,10 +583,10 @@ const PresentationPage = () => {
   
 
   return (
-    <div className="min-h-screen p-6 relative">
-      <div className="w-full bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm">
+    <div className="min-h-screen p-2 sm:p-4 md:p-6 relative flex flex-col gap-3">
+      <div className="w-full bg-white border-b px-2 sm:px-6 py-2 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <Button onClick={() => navigate("/dashboard")}>Back</Button>
 
           <h2 className="text-xl font-semibold">{presentation.name}</h2>
@@ -596,7 +596,7 @@ const PresentationPage = () => {
           </Button>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <Button onClick={() => setShowHistory(true)}>
             History
           </Button>
@@ -614,7 +614,7 @@ const PresentationPage = () => {
         </div>
       </div>
 
-      <div className="relative border h-100 flex items-center justify-center bg-gray-100">
+      <div className="relative border w-full aspect-video max-h-[55vh] sm:max-h-none flex items-center justify-center bg-gray-100 overflow-hidden">
         <div className="absolute inset-0" onClick={() => setSelectedElementId(null)} ref={slideRef} style={getBackgroundStyle()}>
           {slide.elements.map((el) => (
             <div
@@ -660,7 +660,7 @@ const PresentationPage = () => {
                 <div
                   className="w-full h-full border border-gray-300  overflow-auto whitespace-normal text-center"
                   style={{
-                    fontSize: `${el.fontSize}em`,
+                    fontSize: `${window.innerWidth < 640 ? el.fontSize * 0.7 : el.fontSize}em`,
                     color: el.color,
                     fontFamily: el.fontFamily,
                   }}
@@ -797,7 +797,7 @@ const PresentationPage = () => {
             <button
               key="arrow-left"
               disabled={currentSlideIndex === 0}
-              className={`absolute left-2 text-2xl ${currentSlideIndex === 0
+              className={`absolute left-1 sm:left-2 text-xl sm:text-2xl ${currentSlideIndex === 0
                 ? "opacity-30 cursor-not-allowed"
                 : "cursor-pointer hover:scale-110"
               }`}
@@ -820,7 +820,8 @@ const PresentationPage = () => {
         )}
       </div>
 
-      <div className="flex gap-3 mt-4">
+      <div className="flex flex-col gap-2 mt-3 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
         <Button onClick={() => setShowSlidePanel(true)}>Slide Panel</Button>
         <Button onClick={handleAddSlide}>+ Add Slide</Button>
         <Button onClick={() => { setShowAddText(true) }}>+ Add Text</Button>
@@ -850,6 +851,7 @@ const PresentationPage = () => {
             <option value="slide-right">Slide (from right)</option>
             <option value="slide-left">Slide (from left)</option>
           </select>
+        </div>
         </div>
       </div>
 
@@ -955,7 +957,7 @@ const PresentationPage = () => {
       {error && (
         <ErrorPopup message={error} onClose={() => setError(null)} />
       )}
-      <div className="flex gap-2 mt-4 overflow-x-auto">
+      <div className="flex gap-2 mt-3 overflow-x-auto pb-2 snap-x">
         {presentation.slides.map((s, index) => (
           <div
             key={s.id}
@@ -972,7 +974,7 @@ const PresentationPage = () => {
 
       {showHistory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-2/3 h-3/4 p-4 rounded flex flex-col">
+          <div className="bg-white w-[95vw] sm:w-2/3 h-[90vh] p-3 sm:p-4 rounded flex flex-col">
 
             <div className="flex justify-between mb-4">
               <h2 className="text-lg font-bold">History</h2>
@@ -1010,14 +1012,14 @@ const PresentationPage = () => {
 
       {showSlidePanel && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-4/5 h-4/5 rounded p-4 flex flex-col">
+          <div className="bg-white w-[95vw] h-[90vh] rounded p-3 sm:p-4 flex flex-col">
 
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Slides</h2>
               <Button onClick={() => setShowSlidePanel(false)}>Close</Button>
             </div>
 
-            <div className="flex-1 overflow-auto grid grid-cols-4 gap-4">
+            <div className="flex-1 overflow-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
               {presentation.slides.map((s, index) => (
                 <div
                   key={s.id}
