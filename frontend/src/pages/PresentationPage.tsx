@@ -548,7 +548,7 @@ const PresentationPage = () => {
     <div className="min-h-screen p-2 sm:p-4 md:p-6 relative flex flex-col gap-3">
       <div className="w-full bg-white border-b px-2 sm:px-6 py-2 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap z-50">
           <Button onClick={() => navigate("/dashboard")}>Back</Button>
 
           <h2 className="text-xl font-semibold">{presentation.name}</h2>
@@ -915,7 +915,7 @@ const PresentationPage = () => {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow">
             <p className="mb-4">Are you sure?</p>
             <div className="flex gap-3">
@@ -929,7 +929,7 @@ const PresentationPage = () => {
       )}
 
       {editingTitle && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow">
             <input
               className="border p-2 mb-4 w-full"
