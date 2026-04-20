@@ -205,7 +205,7 @@ const PreviewPage = () => {
   };
 
   return (
-    <div className="w-screen h-screen relative" style={getBackgroundStyle()}>
+    <div className="w-screen h-screen relative" style={getBackgroundStyle()} aria-label={`Presentation viewer: ${presentation.name}`}>
 
       {prevSlideIndex !== null && (
         <div
@@ -213,6 +213,7 @@ const PreviewPage = () => {
           style={{
             transform: prevTransform(),
           }}
+          aria-hidden="true"
         >
           {renderSlide(presentation.slides[prevSlideIndex])}
         </div>
@@ -223,6 +224,7 @@ const PreviewPage = () => {
         style={{
           transform: currentTransform(),
         }}
+        aria-live="polite"
       >
         {renderSlide(slide)}
       </div>
@@ -231,6 +233,7 @@ const PreviewPage = () => {
         className="absolute left-5 top-1/2 text-black text-3xl"
         disabled={currentSlideIndex === 0}
         onClick={() => goToSlide(currentSlideIndex - 1)}
+        aria-label="Previous slide"
       >
         ←
       </button>
@@ -239,11 +242,12 @@ const PreviewPage = () => {
         className="absolute right-5 top-1/2 text-black text-3xl"
         disabled={currentSlideIndex === presentation.slides.length - 1}
         onClick={() => goToSlide(currentSlideIndex + 1)}
+        aria-label="Next slide"
       >
         →
       </button>
 
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-black">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-black" aria-live="polite">
         {currentSlideIndex + 1} / {presentation.slides.length}
       </div>
 
