@@ -45,7 +45,7 @@ const AddCodeModal=({onClose,onSubmit,initialData}:AddCodeModalProps)=>{
             <Field>
               <FieldLabel htmlFor="textarea-text">Code</FieldLabel>
               <FieldDescription>Enter your code below.</FieldDescription>
-              <Textarea id="textarea-text" placeholder="Type your text here." value={code} onChange={(e) => SetCode(e.target.value)} />
+              <Textarea id="textarea-text" value={code} onChange={(e) => SetCode(e.target.value)} className="h-[250px] max-h-[300px] overflow-y-auto resize-none font-mono whitespace-pre"/>
             </Field>
             <Field>
               <Label htmlFor="fontSize">Font Size (em)</Label>
