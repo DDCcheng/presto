@@ -811,21 +811,6 @@ const PresentationPage = () => {
         )}
       </div>
 
-      <div className="flex gap-2 mt-3 overflow-x-auto pb-2 snap-x">
-        {presentation.slides.map((s, index) => (
-          <div
-            key={s.id}
-            onClick={() => setCurrentSlideIndex(index)}
-            className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${index === currentSlideIndex
-              ? "border-blue-500 ring-2 ring-blue-400"
-              : "border-gray-300"
-            }`}
-          >
-            <span className="text-sm">{`Slide ${index + 1}`}</span>
-          </div>
-        ))}
-      </div>
-
       <div className="flex flex-col gap-2 mt-3 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
           <Button onClick={() => setShowSlidePanel(true)}>Slide Panel</Button>
@@ -970,7 +955,20 @@ const PresentationPage = () => {
       {error && (
         <ErrorPopup message={error} onClose={() => setError(null)} />
       )}
-      
+      <div className="flex gap-2 mt-3 overflow-x-auto pb-2 snap-x">
+        {presentation.slides.map((s, index) => (
+          <div
+            key={s.id}
+            onClick={() => setCurrentSlideIndex(index)}
+            className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${index === currentSlideIndex
+              ? "border-blue-500 ring-2 ring-blue-400"
+              : "border-gray-300"
+            }`}
+          >
+            <span className="text-sm">{`Slide ${index + 1}`}</span>
+          </div>
+        ))}
+      </div>
 
       {showHistory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
