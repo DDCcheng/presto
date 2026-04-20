@@ -92,10 +92,21 @@ const DashboardPage=()=>{
     <div className="min-h-screen p-8">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <Button variant="outline" size="sm" onClick={newPresentation} disabled={creatingPresentation}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={newPresentation}
+          disabled={creatingPresentation}
+          aria-label="Create new presentation"
+        >
                      New Presentation
         </Button>
-        <Button variant="outline" onClick={handleLogout} disabled={loggingOut}>
+        <Button
+          variant="outline"
+          onClick={handleLogout}
+          disabled={loggingOut}
+          aria-label="Logout of account"
+        >
                     {loggingOut ? 'Logging out...' : 'Logout'}
         </Button>
       </div>
@@ -113,10 +124,18 @@ const DashboardPage=()=>{
         {presentations.map((presentation) => (
           <div key={presentation.id} 
             className="border rounded-lg overflow-hidden cursor-pointer hover:shadow-md"
-            onClick={() => navigate(`/presentation/${presentation.id}`)}>
+            onClick={() => navigate(`/presentation/${presentation.id}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                navigate(`/presentation/${presentation.id}`);
+              }
+            }}
+            aria-label={`Open presentation ${presentation.name}`}>
             <div className="aspect-2/1 bg-gray-200">
               {presentation.thumbnail && (
-                <img src={presentation.thumbnail} className="w-full h-full object-cover" />
+                <img src={presentation.thumbnail} className="w-full h-full object-cover" alt={`Thumbnail for ${presentation.name}`}/>
               )}
             </div>
             <div className="p-3">

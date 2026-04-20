@@ -123,6 +123,8 @@ const RegisterPage = () => {
           className="w-full"
           onClick={handleSubmit}
           disabled={loading}
+          aria-busy={loading}
+          aria-disabled={loading}
         >
           {loading ? 'Registering ...' : 'Create Account'}
         </Button>
@@ -135,7 +137,9 @@ const RegisterPage = () => {
         </p>
       </div>
       {error && (
-        <ErrorPopup message={error} onClose={() => setError(null)} />
+        <div role="alert">
+          <ErrorPopup message={error} onClose={() => setError(null)} />
+        </div>
       )}
     </div>
   );
