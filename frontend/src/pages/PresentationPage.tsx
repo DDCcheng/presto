@@ -442,10 +442,10 @@ const PresentationPage = () => {
 
     const handleTouchEnd = () => {
       if (!dragInfo.current && !resizeInfo.current) return;
-        dragInfo.current = null;
-        resizeInfo.current = null;
-        if (presentation) {
-          saveSlides(presentation.slides);
+      dragInfo.current = null;
+      resizeInfo.current = null;
+      if (presentation) {
+        saveSlides(presentation.slides);
       }
     };
 

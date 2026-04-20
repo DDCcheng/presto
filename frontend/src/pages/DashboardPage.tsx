@@ -107,7 +107,7 @@ const DashboardPage=()=>{
           disabled={loggingOut}
           aria-label="Logout of account"
         >
-                    {loggingOut ? 'Logging out...' : 'Logout'}
+          {loggingOut ? 'Logging out...' : 'Logout'}
         </Button>
       </div>
       {error && (
