@@ -48,6 +48,7 @@ const LoginPage =()=>{
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={handleKeyDown}
+            aria-invalid={!!error}
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter your email"
           />
@@ -62,6 +63,7 @@ const LoginPage =()=>{
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={handleKeyDown}
+            aria-invalid={!!error}
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter your password"
           />
@@ -76,7 +78,7 @@ const LoginPage =()=>{
         </Button>
 
         <p className="mt-4 text-center text-sm text-gray-600">
-          Don&apos;t have an account?{' '}
+          Don't have an account?{' '}
           <Link to="/register" className="text-blue-600 hover:underline">
             Register
           </Link>
@@ -84,7 +86,9 @@ const LoginPage =()=>{
       </div>
 
       {error && (
-        <ErrorPopup message={error} onClose={() => setError(null)} />
+        <div role="alert">
+          <ErrorPopup message={error} onClose={() => setError(null)} />
+        </div>
       )}
     </div>
   );
