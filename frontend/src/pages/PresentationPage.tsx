@@ -548,7 +548,7 @@ const PresentationPage = () => {
     <div className="min-h-screen p-2 sm:p-4 md:p-6 relative flex flex-col gap-3">
       <div className="w-full bg-white border-b px-2 sm:px-6 py-2 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap z-50">
           <Button onClick={() => navigate("/dashboard")}>Back</Button>
 
           <h2 className="text-xl font-semibold">{presentation.name}</h2>
@@ -811,6 +811,21 @@ const PresentationPage = () => {
         )}
       </div>
 
+      <div className="flex gap-2 mt-3 overflow-x-auto pb-2 snap-x">
+        {presentation.slides.map((s, index) => (
+          <div
+            key={s.id}
+            onClick={() => setCurrentSlideIndex(index)}
+            className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${index === currentSlideIndex
+              ? "border-blue-500 ring-2 ring-blue-400"
+              : "border-gray-300"
+            }`}
+          >
+            <span className="text-sm">{`Slide ${index + 1}`}</span>
+          </div>
+        ))}
+      </div>
+
       <div className="flex flex-col gap-2 mt-3 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
           <Button onClick={() => setShowSlidePanel(true)}>Slide Panel</Button>
@@ -915,7 +930,7 @@ const PresentationPage = () => {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow">
             <p className="mb-4">Are you sure?</p>
             <div className="flex gap-3">
@@ -929,7 +944,7 @@ const PresentationPage = () => {
       )}
 
       {editingTitle && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow">
             <input
               className="border p-2 mb-4 w-full"
@@ -955,20 +970,7 @@ const PresentationPage = () => {
       {error && (
         <ErrorPopup message={error} onClose={() => setError(null)} />
       )}
-      <div className="flex gap-2 mt-3 overflow-x-auto pb-2 snap-x">
-        {presentation.slides.map((s, index) => (
-          <div
-            key={s.id}
-            onClick={() => setCurrentSlideIndex(index)}
-            className={`min-w-20 h-15 border flex items-center justify-center cursor-pointer ${index === currentSlideIndex
-              ? "border-blue-500 ring-2 ring-blue-400"
-              : "border-gray-300"
-            }`}
-          >
-            <span className="text-sm">{`Slide ${index + 1}`}</span>
-          </div>
-        ))}
-      </div>
+      
 
       {showHistory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
