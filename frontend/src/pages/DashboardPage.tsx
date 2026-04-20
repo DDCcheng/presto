@@ -56,8 +56,8 @@ const DashboardPage=()=>{
     const trimmedDescription = normalizeInput(description);
     const trimmedThumbnail = normalizeInput(thumbnail);
 
-    if (isBlank(trimmedName) || isBlank(trimmedDescription) || isBlank(trimmedThumbnail)) {
-      setError('Name, description, and thumbnail cannot be blank');
+    if (isBlank(trimmedName) || isBlank(trimmedDescription)) {
+      setError('Name and description cannot be blank');
       return;
     }
 
@@ -80,6 +80,7 @@ const DashboardPage=()=>{
 
       await updateStoreApi(token,{presentations:updatePresentation});
       setPresentations(updatePresentation);
+      setError(null);
       setShowModal(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to create presentation');
@@ -110,7 +111,7 @@ const DashboardPage=()=>{
           {loggingOut ? 'Logging out...' : 'Logout'}
         </Button>
       </div>
-      {error && (
+      {error && !showModal && (
         <ErrorPopup message={error} onClose={() => setError(null)} />
       )}
       {showModal && (
@@ -118,6 +119,8 @@ const DashboardPage=()=>{
           onClose={() => setShowModal(false)}
           onSubmit={handleCreatePresentation}
           submitting={creatingPresentation}
+          error={error}
+          onClearError={() => setError(null)}
         />
       )}
       <div className="grid gap-4 mt-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
