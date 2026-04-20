@@ -2,31 +2,37 @@
 
 ## Responsive Layout
 
-The presentation editor uses a responsive layout with Tailwind's breakpoint
-system (sm/md). On small screens, buttons become scrollable horizontally
-and the slide canvas limits its height to 55vh to ensure controls remain
-accessible.
+The presentation editor uses Tailwind's responsive breakpoints (sm/md).
+On small screens, buttons become horizontally scrollable and the slide
+canvas limits its height to 55vh to ensure controls remain accessible.
 
 ## Drag and Drop Interactions
 
 Elements can be moved by clicking and dragging the element body, and
-resized by dragging the corner handles. This replaces the manual
+resized by dragging the 5px corner handles. This replaces manual
 position/size input fields for a more intuitive editing experience.
 
 ## Visual Feedback for Selection
 
-When an element is selected (single click), a blue border appears around
-it and 5px black handles appear at each corner, providing clear visual
-indication of the selected state and available interactions.
+When an element is selected via single click, a blue border appears
+around it and 5px black handles appear at each corner, providing clear
+visual indication of the selected state and available interactions.
 
 ## Modal-based Editing
 
-All element creation and property editing uses modal dialogs (shadcn Dialog),
-providing a consistent and focused editing experience. Double-clicking an
-element opens its edit modal with pre-filled values.
+All element creation and property editing uses shadcn Dialog modals,
+providing a consistent and focused editing experience. Double-clicking
+an element opens its edit modal with pre-filled current values.
 
 ## Slide Panel with Mini Previews
 
 The slide control panel shows mini-previews of each slide including
 background and element content, allowing users to quickly identify
-and navigate to specific slides. Slides can be reordered via drag and drop.
+and navigate to specific slides. Slides can be reordered via drag
+and drop within the panel.
+
+## Background Customization
+
+The background modal provides three options (solid, gradient, image)
+with clear toggle buttons showing the active selection. Users can
+set both per-slide and default backgrounds in the same modal.
