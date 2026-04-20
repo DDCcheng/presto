@@ -601,10 +601,10 @@ const PresentationPage = () => {
   
 
   return (
-    <div className="min-h-screen p-2 sm:p-4 md:p-6 relative flex flex-col gap-3">
+    <main aria-label="Presentation editor page" className="min-h-screen p-2 sm:p-4 md:p-6 relative flex flex-col gap-3">
       <div className="w-full bg-white border-b px-2 sm:px-6 py-2 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap z-50">
-          <Button onClick={() => navigate("/dashboard")}>Back</Button>
+          <Button onClick={() => navigate("/dashboard")} aria-label="Go back to dashboard">Back</Button>
           <h2 className="text-xl font-semibold">{presentation.name}</h2>
           <Button size="sm" variant="outline" onClick={() => setEditingTitle(true)}>
             Edit
@@ -614,23 +614,25 @@ const PresentationPage = () => {
           <Button onClick={() => setShowHistory(true)}>
             History
           </Button>
-          <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
+          <Button onClick={() => window.open(`/preview/${id}`, "_blank")} aria-label="Open preview in new tab">
             Preview
           </Button>
           <Button
             variant="destructive"
             onClick={() => setShowDeleteConfirm(true)}
+            aria-label="Delete presentation"
           >
             Delete
           </Button>
         </div>
       </div>
 
-      <div className="relative border w-full aspect-video max-h-[55vh] sm:max-h-none flex items-center justify-center bg-gray-100 overflow-hidden">
+      <div className="relative border w-full aspect-video max-h-[55vh] sm:max-h-none flex items-center justify-center bg-gray-100 overflow-hidden" role="region" aria-label="Slide canvas">
         <div className="absolute inset-0" onClick={() => setSelectedElementId(null)} ref={slideRef} style={getBackgroundStyle()}>
           {slide.elements.map((el) => (
             <div
               key={el.id}
+              role="button"
               style={{
                 position: 'absolute',
                 left: `${el.x}%`,
@@ -970,7 +972,7 @@ const PresentationPage = () => {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div role="dialog" aria-modal="true" aria-label="Delete confirmation dialog" className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow">
             <p className="mb-4">Are you sure?</p>
             <div className="flex gap-3">
@@ -984,7 +986,7 @@ const PresentationPage = () => {
       )}
 
       {editingTitle && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div role="dialog" aria-modal="true" aria-label="Edit title dialog" className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow">
             <input
               className="border p-2 mb-4 w-full"
@@ -1008,7 +1010,9 @@ const PresentationPage = () => {
         </div>
       )}
       {error && (
-        <ErrorPopup message={error} onClose={() => setError(null)} />
+        <div aria-live="assertive">  
+          <ErrorPopup message={error} onClose={() => setError(null)} />
+        </div>
       )}
       <div className="flex gap-2 mt-3 overflow-x-auto pb-2 snap-x">
         {presentation.slides.map((s, index) => (
@@ -1026,7 +1030,7 @@ const PresentationPage = () => {
       </div>
 
       {showHistory && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div role="dialog" aria-modal="true" aria-label="History popup" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white w-[95vw] sm:w-2/3 h-[90vh] p-3 sm:p-4 rounded flex flex-col">
 
             <div className="flex justify-between mb-4">
@@ -1064,7 +1068,7 @@ const PresentationPage = () => {
       )}
 
       {showSlidePanel && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div role="dialog" aria-modal="true" aria-label="Slide panel popup" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white w-[95vw] h-[90vh] rounded p-3 sm:p-4 flex flex-col">
 
             <div className="flex justify-between items-center mb-4">
@@ -1173,7 +1177,7 @@ const PresentationPage = () => {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 
