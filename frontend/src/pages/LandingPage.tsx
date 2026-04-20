@@ -6,9 +6,9 @@ const LandingPage =()=>{
   const navigate=useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="text-center mb-8">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">🪄 Presto</h1>
+        <h1 className="text-5xl font-bold text-gray-900 mb-4"><span aria-hidden="true">🪄</span> Presto</h1>
         <p className="text-xl text-gray-600">
           A lightweight, enjoyable presentation tool
         </p>
@@ -25,7 +25,7 @@ const LandingPage =()=>{
           Register
         </Button>
       </div>
-    </div>
+    </main>
   );
 };
 
