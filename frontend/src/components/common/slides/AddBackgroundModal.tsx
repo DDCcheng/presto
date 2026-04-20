@@ -23,6 +23,7 @@ interface BackgroundModalProps {
 }
 
 const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundChange,defaultBackground,slideBackground,submitting = false}:BackgroundModalProps)=>{
+  //controls current slide bg editing
   const [slideType, setSlideType] = useState<'solid' | 'gradient' | 'image'>(
     slideBackground ? slideBackground.type : 'solid'
   );
@@ -38,6 +39,7 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
   const [slideImage, setSlideImage] = useState(
     slideBackground && slideBackground.type === 'image' ? slideBackground.image ?? '' : ''
   );
+  //control global presentation bg editing
   const [defaultType, setDefaultType] = useState<'solid' | 'gradient' | 'image'>(
     defaultBackground ? defaultBackground.type : 'solid'
   );
@@ -61,7 +63,7 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
           <DialogTitle>Theme & Background</DialogTitle>
           <DialogDescription>Customize slide background</DialogDescription>
         </DialogHeader>
-
+        {/* Background type selector */}
         <FieldGroup>
           <Label>Current Slide Background</Label>
           <div className="flex gap-2">
@@ -69,14 +71,14 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
             <Button variant={slideType === 'gradient' ? 'default' : 'outline'} onClick={() => setSlideType('gradient')}>Gradient</Button>
             <Button variant={slideType === 'image' ? 'default' : 'outline'} onClick={() => setSlideType('image')}>Image</Button>
           </div>
-
+          {/* Solid color input */}
           {slideType === 'solid' && (
             <Field>
               <Label>Color</Label>
               <Input type="text" value={slideColor} onChange={(e) => setSlideColor(e.target.value)} placeholder="#ffffff" />
             </Field>
           )}
-
+          {/* Gradient inputs */}
           {slideType === 'gradient' && (
             <>
               <Field>
@@ -89,14 +91,14 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
               </Field>
             </>
           )}
-
+          {/* Image URL input */}
           {slideType === 'image' && (
             <Field>
               <Label>Image URL</Label>
               <Input type="text" value={slideImage} onChange={(e) => setSlideImage(e.target.value)} placeholder="https://..." />
             </Field>
           )}
-
+          {/* Slide action buttons */}
           <div className="flex gap-2">
             <Button onClick={() => {
               if (slideType === 'solid') onSlideBackgroundChange({ type: 'solid', color: slideColor });
@@ -116,14 +118,14 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
             <Button variant={defaultType === 'gradient' ? 'default' : 'outline'} onClick={() => setDefaultType('gradient')}>Gradient</Button>
             <Button variant={defaultType === 'image' ? 'default' : 'outline'} onClick={() => setDefaultType('image')}>Image</Button>
           </div>
-
+          {/* Solid default background */}
           {defaultType === 'solid' && (
             <Field>
               <Label>Color</Label>
               <Input type="text" value={defaultColor} onChange={(e) => setDefaultColor(e.target.value)} placeholder="#ffffff" />
             </Field>
           )}
-
+          {/* Gradient default background */}
           {defaultType === 'gradient' && (
             <>
               <Field>
@@ -136,14 +138,14 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
               </Field>
             </>
           )}
-
+          {/* Image default background */}
           {defaultType === 'image' && (
             <Field>
               <Label>Image URL</Label>
               <Input type="text" value={defaultImage} onChange={(e) => setDefaultImage(e.target.value)} placeholder="https://..." />
             </Field>
           )}
-
+          {/* Apply default background */}
           <Button onClick={() => {
             if (defaultType === 'solid') onDefaultBackgroundChange({ type: 'solid', color: defaultColor });
             else if (defaultType === 'gradient') onDefaultBackgroundChange({ type: 'gradient', gradientStart: defaultGradientStart, gradientEnd: defaultGradientEnd });

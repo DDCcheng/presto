@@ -29,12 +29,14 @@ interface AddCodeModalProps {
 }
 
 const AddCodeModal=({onClose,onSubmit,initialData,submitting = false}:AddCodeModalProps)=>{
+  // Stores user input for code element configuration
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [code,SetCode]=useState(initialData?.code ??'');
   const [fontSize,setFontSize]=useState(initialData?.fontSize ?? 1);
 
   return (
+    //Dialog for adding/editing components
     <>
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent>
@@ -42,29 +44,35 @@ const AddCodeModal=({onClose,onSubmit,initialData,submitting = false}:AddCodeMod
             <DialogTitle>{initialData ? 'Edit Code Element' : 'New Code Element'}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
+          {/* Code input field */}
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="textarea-text">Code</FieldLabel>
               <FieldDescription>Enter your code below.</FieldDescription>
               <Textarea id="textarea-text" value={code} onChange={(e) => SetCode(e.target.value)} className="h-[250px] max-h-[300px] overflow-y-auto resize-none font-mono whitespace-pre"/>
             </Field>
+            {/* Font size input */}
             <Field>
               <Label htmlFor="fontSize">Font Size (em)</Label>
               <Input type="number" step="0.1" placeholder="e.g. 1.5" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} />
             </Field>
+            {/* Width input */}
             <Field>
               <Label htmlFor="width">width</Label>
               <Input  type="number" placeholder="Enter your width(0-100)" value={width} onChange={(e) => setWidth(Number(e.target.value))} />
             </Field>
+            {/* Height input */}
             <Field>
               <Label htmlFor="height">height</Label>
               <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
             </Field>
           </FieldGroup>
+          {/* Close Modal */}
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
+            {/* Submit */}
             <Button onClick={() => onSubmit( width, height ,code,fontSize)} disabled={submitting}>
               {submitting ? 'Saving...' : initialData ? 'Save' : 'Create'}
             </Button>

@@ -6,6 +6,7 @@ import { login as loginApi } from "../services/api";
 import ErrorPopup from "../components/common/ErrorPopup";
 import { isBlank, isValidEmail, normalizeInput } from "../lib/utils";
 
+//login page for user authentication
 const LoginPage =()=>{
   const navigate=useNavigate();
   const {login}=useAuth();
@@ -15,26 +16,34 @@ const LoginPage =()=>{
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  /*
+  * handles login for submission
+  * validates input, calls API, stores token 
+  */
   const handleSubmit = async ()=>{
     if (loading) return;
 
+    //trim whitespace 
     const trimmedEmail = normalizeInput(email);
     const trimmedPassword = normalizeInput(password);
 
+    //basic validation by checking if blank 
     if (isBlank(trimmedEmail) || isBlank(trimmedPassword)) {
       setError('Please enter email and password');
       return ;
     }
 
+    //email formal validation
     if (!isValidEmail(trimmedEmail)) {
       setError('Please enter a valid email address');
       return;
     }
 
     setLoading(true);
+    //call API
     try {
       const data=await loginApi({ email: trimmedEmail, password: trimmedPassword });
-      login(data.token);
+      login(data.token); //store token 
       navigate('/dashboard');
     }catch(error){
       setError( error instanceof Error ? error.message : 'Login failed');
@@ -43,6 +52,9 @@ const LoginPage =()=>{
     }
   };
 
+  /*
+   * Allows submitting form using Enter key
+   */
   const handleKeyDown =(e:React.KeyboardEvent)=>{
     if (e.key=='Enter') handleSubmit();
   }

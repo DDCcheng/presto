@@ -6,20 +6,26 @@ import { register as registerApi } from "../services/api";
 import ErrorPopup from "../components/common/ErrorPopup";
 import { isBlank, isValidEmail, normalizeInput } from "../lib/utils";
 
-
+//register page for creating new user
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  //form states
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  //ui states
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  /*
+   * Handles form submission for registration
+   * Validates input and creates account via API
+   */
   const handleSubmit = async () => {
     if (loading) return;
-
+    //check required fields
     const trimmedEmail = normalizeInput(email);
     const trimmedName = normalizeInput(name);
     const trimmedPassword = normalizeInput(password);
@@ -30,11 +36,13 @@ const RegisterPage = () => {
       return;
     }
 
+    //email format validation
     if (!isValidEmail(trimmedEmail)) {
       setError('Please enter a valid email address');
       return;
     }
 
+    //passwords confirmation check 
     if (trimmedPassword !== trimmedConfirmPassword) {
       setError('Password do not match')
       return;
@@ -42,6 +50,7 @@ const RegisterPage = () => {
 
     setLoading(true);
     try {
+      //calling registration api
       const data = await registerApi({ email: trimmedEmail, password: trimmedPassword, name: trimmedName });
       login(data.token)
       navigate('/dashboard');
@@ -52,6 +61,9 @@ const RegisterPage = () => {
     }
   };
 
+  /*
+   * Allows form submission via Enter key
+   */
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key == 'Enter') handleSubmit();
   }

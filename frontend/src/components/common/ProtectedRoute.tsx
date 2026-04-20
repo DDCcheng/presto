@@ -6,6 +6,7 @@ interface ProtectedRouteProps{
     children:ReactNode;
 }
 
+//wrapper component for routes that require authentication
 const ProtectedRouter =({children}:ProtectedRouteProps)=>{
   const {isAuthentication} =useAuth();
 

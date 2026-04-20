@@ -11,29 +11,36 @@ import python from "highlight.js/lib/languages/python";
 import c from "highlight.js/lib/languages/c";
 import "highlight.js/styles/github.css";
 
+//supported languages for syntax highlighting
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("python", python);
 hljs.registerLanguage("c", c);
 
-
+//Slideshow viewing page
 const PreviewPage = () => {
   const { id } = useParams();
   const { token } = useAuth();
-
+  //loaded presentation data
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-
+  //initial slide index from url
   const urlSlide = Number(searchParams.get("slide")) || 0;
   const [currentSlideIndex, setCurrentSlideIndex] = useState(urlSlide);
 
   const [prevSlideIndex, setPrevSlideIndex] = useState<number | null>(null);
+  //animation state controls 
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
 
+  /*
+   * Navigate to a specific slide index
+   * Handles bounds, transitions, and URL sync
+   */
   const goToSlide = (index: number) => {
     if (!presentation) return;
     if (isAnimating) return;
 
+    //clamp index with a safe range
     const safeIndex = Math.max(
       0,
       Math.min(index, presentation.slides.length - 1)
@@ -63,17 +70,23 @@ const PreviewPage = () => {
       setSearchParams({ slide: String(safeIndex) });
     }, 300);
   };
+
+  /*
+   * Fetch presentation data from API
+   */
   useEffect(() => {
     let cancelled = false;
     const fetchData = async () => {
       if (!token) return;
       const data = await getStoreApi(token);
+      //find presentation by route id
       const found = data.store.presentations.find(
         (p: Presentation) => p.id === id
       );
       if (cancelled) return;
       if (found) {
         setPresentation(found);
+        //get slide index from url 
         const urlSlide = Number(searchParams.get("slide")) || 0;
         const safeIndex = Math.max(0, Math.min(urlSlide, found.slides.length - 1));
         setCurrentSlideIndex(safeIndex);
@@ -83,6 +96,9 @@ const PreviewPage = () => {
     return () => { cancelled = true; };
   }, [token, id]);
 
+  /*
+   * Keyboard navigation (arrow keys)
+   */
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!presentation) return;
@@ -103,6 +119,9 @@ const PreviewPage = () => {
   presentation.slides[currentSlideIndex] ??
   presentation.slides[0];
 
+  /*
+   * Compute slide background (solid, gradient, image)
+   */
   const getBackgroundStyle = () => {
     const slide = presentation.slides[currentSlideIndex];
 
@@ -131,6 +150,9 @@ const PreviewPage = () => {
     return { backgroundColor: "white" };
   };
 
+  /*
+   * Render all elements inside a slide (text, image, video, code)
+   */
   const renderSlide = (s: Slide) =>
     s.elements.map((el: SlideElement) => (
       <div

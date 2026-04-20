@@ -23,6 +23,8 @@ import { Field,
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react";
+
+//used for creating and inserting text elements on slides
 interface AddTextModalProps {
   onClose: () => void;        
   onSubmit: (text: string, color: string, width:number, height :number,fontSize:number,fontFamily:string) => void | Promise<void>;
@@ -38,6 +40,7 @@ interface AddTextModalProps {
 }
 
 const AddTextModal=({onClose,onSubmit,initialData,submitting = false}:AddTextModalProps)=>{
+  //stores editable properties of text 
   const [text,setText]=useState(initialData?.text ??'');
   const [color,setColor]=useState(initialData?.color ??'#000000');
   const [width,setWidth]=useState(initialData?.width ??30);
@@ -71,6 +74,7 @@ const AddTextModal=({onClose,onSubmit,initialData,submitting = false}:AddTextMod
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">Font-Style: {fontFamily}</Button>
                 </DropdownMenuTrigger>
+                {/* Font selection menu */}
                 <DropdownMenuContent>
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Font-Family</DropdownMenuLabel>
@@ -90,10 +94,12 @@ const AddTextModal=({onClose,onSubmit,initialData,submitting = false}:AddTextMod
               <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
             </Field>
           </FieldGroup>
+          {/* Cancel button */}
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
+            {/* Submit button */}
             <Button onClick={() => onSubmit(text, color, width, height, fontSize,fontFamily)} disabled={submitting}>
               {submitting ? 'Saving...' : initialData ? 'Save' : 'Create'}
             </Button>

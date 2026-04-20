@@ -2,6 +2,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 
+//Landing page for unauthenticated user 
+//navigates to login and register page
 const LandingPage =()=>{
   const navigate=useNavigate();
 

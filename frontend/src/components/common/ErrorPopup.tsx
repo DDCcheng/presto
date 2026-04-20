@@ -4,6 +4,7 @@ interface ErrorPopupProps {
     onClose : ()=>void;
 }
 
+//reusable error popup modal 
 const ErrorPopup = ({ message, onClose }: ErrorPopupProps) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[120]">

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react";
 
+// supports file uploads and url based images
 interface AddImageModalProps {
   initialData?: {
     width: number;
@@ -26,15 +27,17 @@ interface AddImageModalProps {
 }
 
 const AddImageModal=({onClose,onSubmit,initialData,submitting = false}:AddImageModalProps)=>{
+  //stores images configuration
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [src,setSrc]=useState(initialData?.src ??'');
   const [alt,setAlt]=useState(initialData?.alt ?? '');
+  //controls whether uploads file or URL 
   const [inputStyle, setInputStyle] = useState(() => {
     if (!initialData?.src) return 'file';
     return initialData.src.startsWith('data:') ? 'file' : 'src';
   });
-
+  //file or URL input modes
   const handleFileStyle=()=>{
     if (inputStyle=='file'){
       setInputStyle('src'); 
@@ -55,6 +58,7 @@ const AddImageModal=({onClose,onSubmit,initialData,submitting = false}:AddImageM
               <Label htmlFor="src">src</Label>
               {inputStyle === 'file' && (
                 <>
+                  {/* Preview uploaded image */}
                   {src && <img src={src} alt="preview" className="max-h-20 mb-2 w-full h-full object-contain" />}
                   <Input type="file" accept="image/*" onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -68,10 +72,12 @@ const AddImageModal=({onClose,onSubmit,initialData,submitting = false}:AddImageM
               {inputStyle=='src' &&
                     <Input  type="src" placeholder="Enter url of Image" value={src} onChange={(e) => setSrc((e.target.value))} />
               }
+              {/* Toggle input mode button */}
               <Button onClick={handleFileStyle} variant="outline">
                 {inputStyle === 'file' ? 'Switch to URL' : 'Switch to File Upload'}
               </Button>
             </Field>
+            {/* alt text field for accessibility */}
             <Field>
               <Label htmlFor="alt">alt</Label>
               <Input  type="text" placeholder="Describe the image" value={alt} onChange={(e) => setAlt((e.target.value))} />
@@ -85,10 +91,12 @@ const AddImageModal=({onClose,onSubmit,initialData,submitting = false}:AddImageM
               <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
             </Field>
           </FieldGroup>
+          {/* Cancel button */}
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
+            {/* Submit */}
             <Button onClick={() => onSubmit( width, height, src, alt)} disabled={submitting}>
               {submitting ? 'Saving...' : initialData ? 'Save' : 'Create'}
             </Button>

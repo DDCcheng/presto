@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react";
 
+//handles creating and editing video slide elements
 interface AddVideoModalProps {
   initialData?: {
     width: number;
@@ -26,6 +27,8 @@ interface AddVideoModalProps {
 }
 
 const AddVideoModal=({onClose,onSubmit,initialData,submitting = false}:AddVideoModalProps)=>{
+  //local form state for video elements
+  //pre filled if editing existing element
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [src,setSrc]=useState(initialData?.src ??'');
@@ -44,6 +47,7 @@ const AddVideoModal=({onClose,onSubmit,initialData,submitting = false}:AddVideoM
             <Field>
               <Label htmlFor="src">Video URL</Label>
               <Input type="text" placeholder="e.g. https://www.youtube.com/embed/dQw4w9WgXcQ" value={src} onChange={(e) => setSrc(e.target.value)} />
+              {/* Toggle autoplay setting */}
               <Button onClick={handleAutoplay} variant="outline" disabled={submitting}>
                 {autoplay === false ? 'Switch to autoplay' : 'Stop autoplay'}
               </Button>
@@ -57,6 +61,7 @@ const AddVideoModal=({onClose,onSubmit,initialData,submitting = false}:AddVideoM
               <Input  type="number" placeholder="Enter your height(0-100)" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
             </Field>
           </FieldGroup>
+          {/* Cancel and Submit buttons */}
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>

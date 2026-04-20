@@ -30,20 +30,25 @@ hljs.registerLanguage('c', c);
 
 
 const PresentationPage = () => {
+  //routher and auth 
   const { id } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
   const slideRef = useRef<HTMLDivElement>(null);
   const [searchParams] = useSearchParams();
+  //core presentation states
   const [presentation, setPresentation] = useState<Presentation | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  //ui state modals and panels 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [newThumbnail, setNewThumbnail] = useState("");
   const [newTitle, setNewTitle] = useState("");
+  //editing state
   const [error, setError] = useState<string | null>(null);
   const [editingElement, setEditingElement] = useState<SlideElement | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  //save controls
   const lastSave = useRef<number>(0);
   const saveInterval = 60000;
 
@@ -80,6 +85,9 @@ const PresentationPage = () => {
     startElH: number;
   } | null>(null);
 
+  /*
+  * Validaiton helpers
+  */
   const getRequiredValue = (label: string, value: string) => {
     const trimmedValue = normalizeInput(value);
     if (isBlank(trimmedValue)) {
@@ -101,12 +109,14 @@ const PresentationPage = () => {
     return value;
   };
 
+  // Serializes save operations to avoid concurrent overwrites
   const enqueueSave = async <T,>(task: () => Promise<T>) => {
     const run = saveQueue.current.then(task, task);
     saveQueue.current = run.then(() => undefined, () => undefined);
     return run;
   };
 
+  // Wraps save calls with loading + error handling
   const runSaveTask = async <T,>(task: () => Promise<T>, fallbackMessage: string) => {
     return enqueueSave(async () => {
       setIsSaving(true);
@@ -121,6 +131,7 @@ const PresentationPage = () => {
     });
   };
 
+  // Creates history snapshot if enough time passed
   const buildHistoryEntry = (currentPresentation: Presentation, slides: Slide[]) => {
     const now = Date.now();
     const shouldSaveHistory =
@@ -142,6 +153,7 @@ const PresentationPage = () => {
     };
   };
 
+  // Updates presentation in backend store safely
   const persistPresentationUpdate = async (
     updater: (currentPresentation: Presentation) => Presentation
   ) => {
@@ -169,6 +181,7 @@ const PresentationPage = () => {
     }, 'Failed to save presentation');
   };
 
+  // Save slides only (most common operation)
   const saveSlides = async (slides: Slide[]) => {
     return persistPresentationUpdate((currentPresentation) => {
       const historyEntry = buildHistoryEntry(currentPresentation, slides);
@@ -183,6 +196,8 @@ const PresentationPage = () => {
   };
 
   //effect function
+  //fetch presentation from API
+  //also sets current slide idex if present in url
   useEffect(() => {
     let cancelled=false;
     const fetchData = async () => {
@@ -279,6 +294,7 @@ const PresentationPage = () => {
   }, [currentSlideIndex, presentation, selectedElementId, editingElement, editingTitle, showAddText, showAddImage, showAddVideo, showAddCode]);
 
   //add element moving logic
+  //drag and resize
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!slideRef.current || !presentation) return;
@@ -449,12 +465,14 @@ const PresentationPage = () => {
       }
     };
 
+    //touch support for mobile 
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('touchcancel', handleTouchEnd);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     return () => {
+      //cleanup listeners 
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('touchmove', handleTouchMove);
@@ -463,7 +481,9 @@ const PresentationPage = () => {
     };
   }, [currentSlideIndex, presentation]);
 
-
+  /*
+  * Handles Slide append and remove 
+  */
   if (!presentation) return <div>Loading...</div>;
   const handleSlideBackgroundChange = async (bg: BackgroundStyle | '') => {
     if (!presentation) return;
@@ -518,6 +538,7 @@ const PresentationPage = () => {
   };
 
   //code element logic
+  //Element adding and editing logic 
   const handleAddCode = async (width: number, height: number, code: string, fontSize: number) => {
     if (!presentation) return;
     const validWidth = getNumberInRange('Width', width, 1, 100);
@@ -802,6 +823,9 @@ const PresentationPage = () => {
     }
   };
 
+  /*
+  * Functions to help with rendering
+  */
   const getSlideBackgroundStyle = (s: Slide) => {
     const bg = s.background || presentation?.defaultBackground;
 
@@ -823,6 +847,7 @@ const PresentationPage = () => {
 
   const slide = presentation.slides[currentSlideIndex];
 
+  //restore history to previous snapshot 
   const handleRestoreHistory = async (history: PresentationHistory) => {
     if (!presentation || !token) return;
 
