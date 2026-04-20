@@ -654,8 +654,12 @@ const PresentationPage = () => {
                 const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
                 return (
                   <pre
-                    className="w-full h-full border border-gray-300 overflow-auto m-0"
-                    style={{ fontSize: `${el.fontSize}em`, whiteSpace: 'pre', userSelect: 'none' }}
+                    className="inline-block border border-gray-300 m-0"
+                    style={{
+                      fontSize: `${el.fontSize}em`,
+                      whiteSpace: 'pre',
+                      display: 'inline-block',
+                    }}
                   >
                     <code
                       className={`hljs language-${highlighted.language}`}
