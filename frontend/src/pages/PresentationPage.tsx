@@ -15,6 +15,8 @@ import AddBackgroundModal from "@/components/common/slides/AddBackgroundModal";
 import type { BackgroundStyle } from "../types";
 
 //plugin for code recongnising
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { ghcolors } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import python from 'highlight.js/lib/languages/python';
@@ -50,9 +52,7 @@ const PresentationPage = () => {
   const [showAddVideo, setShowAddVideo] = useState(false);
   const [showAddCode, setShowAddCode] = useState(false);
   const [showBackground, setShowBackground] = useState(false);
-
   const [showSlidePanel, setShowSlidePanel] = useState(false);
-
   const [draggedSlide, setDraggedIndex] = useState<number | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const copiedElement = useRef<SlideElement | null>(null);
@@ -603,26 +603,20 @@ const PresentationPage = () => {
   return (
     <div className="min-h-screen p-2 sm:p-4 md:p-6 relative flex flex-col gap-3">
       <div className="w-full bg-white border-b px-2 sm:px-6 py-2 shadow-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap z-50">
           <Button onClick={() => navigate("/dashboard")}>Back</Button>
-
           <h2 className="text-xl font-semibold">{presentation.name}</h2>
-
           <Button size="sm" variant="outline" onClick={() => setEditingTitle(true)}>
             Edit
           </Button>
         </div>
-
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <Button onClick={() => setShowHistory(true)}>
             History
           </Button>
-
           <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
             Preview
           </Button>
-
           <Button
             variant="destructive"
             onClick={() => setShowDeleteConfirm(true)}
@@ -706,24 +700,25 @@ const PresentationPage = () => {
                 />
               )}
 
-              {el.type === 'code' && (() => {
-                const highlighted = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
-                return (
-                  <pre
-                    className="inline-block border border-gray-300 m-0"
-                    style={{
-                      fontSize: `${el.fontSize}em`,
-                      whiteSpace: 'pre',
-                      display: 'inline-block',
-                    }}
-                  >
-                    <code
-                      className={`hljs language-${highlighted.language}`}
-                      dangerouslySetInnerHTML={{ __html: highlighted.value }}
-                    />
-                  </pre>
-                );
-              })()}
+              {el.type === 'code' && (
+                <SyntaxHighlighter
+                  language={(() => {
+                    const detected = hljs.highlightAuto(el.code, ['javascript', 'python', 'c']);
+                    return detected.language || 'javascript';
+                  })()}
+                  style={ghcolors}
+                  customStyle={{
+                    width: '100%',
+                    height: '100%',
+                    margin: 0,
+                    fontSize: `${el.fontSize}em`,
+                    overflow: 'auto',
+                    userSelect: 'none',
+                  }}
+                >
+                  {el.code}
+                </SyntaxHighlighter>
+              )}
 
               {selectedElementId === el.id && (
                 <>
@@ -872,7 +867,7 @@ const PresentationPage = () => {
       </div>
 
       <div className="flex flex-col gap-2 mt-3 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
+        <div className="flex gap-2 flex-wrap pb-1 sm:flex-wrap">
           <Button onClick={() => setShowSlidePanel(true)}>Slide Panel</Button>
           <Button onClick={handleAddSlide}>+ Add Slide</Button>
           <Button onClick={() => { setShowAddText(true) }}>+ Add Text</Button>
