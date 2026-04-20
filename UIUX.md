@@ -36,3 +36,11 @@ and drop within the panel.
 The background modal provides three options (solid, gradient, image)
 with clear toggle buttons showing the active selection. Users can
 set both per-slide and default backgrounds in the same modal.
+
+## Keyboard Shortcuts
+
+- Left/Right Arrow: Navigate between slides
+- Delete: Remove the currently selected element
+- Escape: Deselect the current element
+- Ctrl+C: Copy the selected element
+- Ctrl+V: Paste the copied element (offset by 5%)

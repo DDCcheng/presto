@@ -55,6 +55,8 @@ const PresentationPage = () => {
 
   const [draggedSlide, setDraggedIndex] = useState<number | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const copiedElement = useRef<SlideElement | null>(null);
+
   //moving part
   const dragInfo = useRef<{
     elementId: string;
@@ -141,6 +143,9 @@ const PresentationPage = () => {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!presentation) return;
+
+      if (editingElement || editingTitle || showAddText || showAddImage || showAddVideo || showAddCode) return;
+
       if (e.key === "ArrowLeft" && currentSlideIndex > 0) {
         setCurrentSlideIndex((i) => i - 1);
       }
@@ -150,10 +155,61 @@ const PresentationPage = () => {
       ) {
         setCurrentSlideIndex((i) => i + 1);
       }
+      //delete key to delete element
+      if (e.key === 'Delete' && selectedElementId) {
+        const currentSlide = presentation.slides[currentSlideIndex];
+        const updatedElements = currentSlide.elements.filter(
+          (el) => el.id !== selectedElementId
+        );
+        const updatedSlides = presentation.slides.map((s, index) =>
+          index === currentSlideIndex ? { ...s, elements: updatedElements } : s
+        );
+        saveSlides(updatedSlides);
+        setSelectedElementId(null);
+      }
+
+      // Ctrl+C 
+      if (e.key === 'c' && (e.ctrlKey || e.metaKey) && selectedElementId) {
+        e.preventDefault();
+        const currentSlide = presentation.slides[currentSlideIndex];
+        const el = currentSlide.elements.find(el => el.id === selectedElementId);
+        if (el) {
+          copiedElement.current = el;
+        }
+      }
+
+      // Ctrl+V paste
+      if (e.key === 'v' && (e.ctrlKey || e.metaKey) && copiedElement.current) {
+        e.preventDefault();
+        const currentSlide = presentation.slides[currentSlideIndex];
+        const maxZIndex = currentSlide.elements.length === 0
+          ? 0
+          : Math.max(...currentSlide.elements.map(el => el.zIndex));
+      
+        const newElement = {
+          ...copiedElement.current,
+          id: crypto.randomUUID(),
+          x: Math.min(copiedElement.current.x + 5, 100 - copiedElement.current.width),
+          y: Math.min(copiedElement.current.y + 5, 100 - copiedElement.current.height),
+          zIndex: maxZIndex + 1,
+        };
+
+        const updatedElements = [...currentSlide.elements, newElement];
+        const updatedSlides = presentation.slides.map((s, index) =>
+          index === currentSlideIndex ? { ...s, elements: updatedElements } : s
+        );
+        saveSlides(updatedSlides);
+        setSelectedElementId(newElement.id);
+      }
+
+      // Escape cancel choosing
+      if (e.key === 'Escape') {
+        setSelectedElementId(null);
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [currentSlideIndex, presentation]);
+  }, [currentSlideIndex, presentation, selectedElementId, editingElement, editingTitle, showAddText, showAddImage, showAddVideo, showAddCode]);
 
   //add element moving logic
   useEffect(() => {

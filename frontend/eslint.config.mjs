@@ -16,6 +16,7 @@ export default defineConfig(
       "**/*config.js",
       "src/components/ui/**",
       "**/*config.ts",
+      "cypress/**",
     ],
   },
   {
