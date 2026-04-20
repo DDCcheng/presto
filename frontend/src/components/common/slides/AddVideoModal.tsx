@@ -21,10 +21,11 @@ interface AddVideoModalProps {
     autoplay:boolean
   };
   onClose: () => void;        
-  onSubmit: ( width:number, height :number,src:string,autoplay:boolean) => void;
+  onSubmit: ( width:number, height :number,src:string,autoplay:boolean) => void | Promise<void>;
+  submitting?: boolean;
 }
 
-const AddVideoModal=({onClose,onSubmit,initialData}:AddVideoModalProps)=>{
+const AddVideoModal=({onClose,onSubmit,initialData,submitting = false}:AddVideoModalProps)=>{
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [src,setSrc]=useState(initialData?.src ??'');
@@ -43,7 +44,7 @@ const AddVideoModal=({onClose,onSubmit,initialData}:AddVideoModalProps)=>{
             <Field>
               <Label htmlFor="src">Video URL</Label>
               <Input type="text" placeholder="e.g. https://www.youtube.com/embed/dQw4w9WgXcQ" value={src} onChange={(e) => setSrc(e.target.value)} />
-              <Button onClick={handleAutoplay} variant="outline">
+              <Button onClick={handleAutoplay} variant="outline" disabled={submitting}>
                 {autoplay === false ? 'Switch to autoplay' : 'Stop autoplay'}
               </Button>
             </Field>
@@ -60,8 +61,8 @@ const AddVideoModal=({onClose,onSubmit,initialData}:AddVideoModalProps)=>{
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
-            <Button onClick={() => onSubmit( width, height, src,autoplay)}>
-              {initialData ? 'Save' : 'Create'}
+            <Button onClick={() => onSubmit( width, height, src,autoplay)} disabled={submitting}>
+              {submitting ? 'Saving...' : initialData ? 'Save' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

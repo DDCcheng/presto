@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button";
 import { useAuth } from "../hooks/useAuth";
 import { register as registerApi } from "../services/api";
 import ErrorPopup from "../components/common/ErrorPopup";
+import { isBlank, isValidEmail, normalizeInput } from "../lib/utils";
 
 
 const RegisterPage = () => {
@@ -17,17 +18,31 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!email || !password || !name) {
-      setError('Please enter email and password and name');
+    if (loading) return;
+
+    const trimmedEmail = normalizeInput(email);
+    const trimmedName = normalizeInput(name);
+    const trimmedPassword = normalizeInput(password);
+    const trimmedConfirmPassword = normalizeInput(confirmPassword);
+
+    if (isBlank(trimmedEmail) || isBlank(trimmedPassword) || isBlank(trimmedName) || isBlank(trimmedConfirmPassword)) {
+      setError('Please fill in all fields');
       return;
     }
-    if (password !== confirmPassword) {
+
+    if (!isValidEmail(trimmedEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
       setError('Password do not match')
+      return;
     }
 
     setLoading(true);
     try {
-      const data = await registerApi({ email, password, name });
+      const data = await registerApi({ email: trimmedEmail, password: trimmedPassword, name: trimmedName });
       login(data.token)
       navigate('/dashboard');
     } catch (error) {

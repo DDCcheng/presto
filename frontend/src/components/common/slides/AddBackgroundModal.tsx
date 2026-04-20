@@ -19,9 +19,10 @@ interface BackgroundModalProps {
   defaultBackground?: BackgroundStyle;
   onSlideBackgroundChange: (bg: BackgroundStyle | '') => void;
   onDefaultBackgroundChange: (bg: BackgroundStyle) => void;
+  submitting?: boolean;
 }
 
-const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundChange,defaultBackground,slideBackground}:BackgroundModalProps)=>{
+const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundChange,defaultBackground,slideBackground,submitting = false}:BackgroundModalProps)=>{
   const [slideType, setSlideType] = useState<'solid' | 'gradient' | 'image'>(
     slideBackground ? slideBackground.type : 'solid'
   );
@@ -101,8 +102,10 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
               if (slideType === 'solid') onSlideBackgroundChange({ type: 'solid', color: slideColor });
               else if (slideType === 'gradient') onSlideBackgroundChange({ type: 'gradient', gradientStart: slideGradientStart, gradientEnd: slideGradientEnd });
               else onSlideBackgroundChange({ type: 'image', image: slideImage });
-            }}>Apply to Slide</Button>
-            <Button variant="outline" onClick={() => onSlideBackgroundChange('')}>Reset to Default</Button>
+            }} disabled={submitting}>
+              {submitting ? 'Applying...' : 'Apply to Slide'}
+            </Button>
+            <Button variant="outline" onClick={() => onSlideBackgroundChange('')} disabled={submitting}>Reset to Default</Button>
           </div>
         </FieldGroup>
 
@@ -145,7 +148,9 @@ const AddBackgroundModal=({onClose,onSlideBackgroundChange,onDefaultBackgroundCh
             if (defaultType === 'solid') onDefaultBackgroundChange({ type: 'solid', color: defaultColor });
             else if (defaultType === 'gradient') onDefaultBackgroundChange({ type: 'gradient', gradientStart: defaultGradientStart, gradientEnd: defaultGradientEnd });
             else onDefaultBackgroundChange({ type: 'image', image: defaultImage });
-          }}>Apply as Default</Button>
+          }} disabled={submitting}>
+            {submitting ? 'Applying...' : 'Apply as Default'}
+          </Button>
         </FieldGroup>
 
         <DialogFooter>

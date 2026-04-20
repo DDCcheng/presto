@@ -21,10 +21,11 @@ interface AddImageModalProps {
     alt:string,
   };
   onClose: () => void;        
-  onSubmit: ( width:number, height :number,src:string,alt:string) => void;
+  onSubmit: ( width:number, height :number,src:string,alt:string) => void | Promise<void>;
+  submitting?: boolean;
 }
 
-const AddImageModal=({onClose,onSubmit,initialData}:AddImageModalProps)=>{
+const AddImageModal=({onClose,onSubmit,initialData,submitting = false}:AddImageModalProps)=>{
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [src,setSrc]=useState(initialData?.src ??'');
@@ -88,8 +89,8 @@ const AddImageModal=({onClose,onSubmit,initialData}:AddImageModalProps)=>{
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
-            <Button onClick={() => onSubmit( width, height, src, alt)}>
-              {initialData ? 'Save' : 'Create'}
+            <Button onClick={() => onSubmit( width, height, src, alt)} disabled={submitting}>
+              {submitting ? 'Saving...' : initialData ? 'Save' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

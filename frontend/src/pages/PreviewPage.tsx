@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getStore as getStoreApi } from "../services/api";
 import type { Presentation, Slide, SlideElement } from "../types";
+import { buildVideoSrc } from "../lib/utils";
 
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
@@ -162,7 +163,7 @@ const PreviewPage = () => {
 
         {el.type === "video" && (
           <iframe
-            src={el.src}
+            src={buildVideoSrc(el.src, el.autoplay)}
             className="w-full h-full"
             title="video"
             allow="autoplay"

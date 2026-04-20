@@ -4,6 +4,7 @@ import { Button } from "../components/ui/button";
 import { useAuth } from "../hooks/useAuth";
 import { login as loginApi } from "../services/api";
 import ErrorPopup from "../components/common/ErrorPopup";
+import { isBlank, isValidEmail, normalizeInput } from "../lib/utils";
 
 const LoginPage =()=>{
   const navigate=useNavigate();
@@ -15,13 +16,24 @@ const LoginPage =()=>{
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async ()=>{
-    if(!email ||!password){
+    if (loading) return;
+
+    const trimmedEmail = normalizeInput(email);
+    const trimmedPassword = normalizeInput(password);
+
+    if (isBlank(trimmedEmail) || isBlank(trimmedPassword)) {
       setError('Please enter email and password');
       return ;
     }
+
+    if (!isValidEmail(trimmedEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setLoading(true);
     try {
-      const data=await loginApi({email,password});
+      const data=await loginApi({ email: trimmedEmail, password: trimmedPassword });
       login(data.token);
       navigate('/dashboard');
     }catch(error){

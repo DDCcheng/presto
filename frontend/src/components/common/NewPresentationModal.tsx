@@ -15,10 +15,11 @@ import { useState } from "react";
 
 interface NewPresentationProps {
   onClose: () => void;        
-  onSubmit: (name: string, description: string, thumbnail: string) => void; 
+  onSubmit: (name: string, description: string, thumbnail: string) => void | Promise<void>;
+  submitting?: boolean;
 }
 
-const NewPresentation = ({onClose,onSubmit}:NewPresentationProps)=>{
+const NewPresentation = ({onClose,onSubmit,submitting = false}:NewPresentationProps)=>{
   const [name,setName]=useState('');
   const [description,setDescription]=useState('');
   const [thumbnail,setThumbnail]=useState('');
@@ -49,7 +50,9 @@ const NewPresentation = ({onClose,onSubmit}:NewPresentationProps)=>{
           <DialogClose asChild>
             <Button variant="outline" onClick={onClose}>Cancel</Button>
           </DialogClose>
-          <Button type="submit" onClick={()=>onSubmit(name,description,thumbnail)}>Create</Button>
+          <Button type="submit" onClick={()=>onSubmit(name,description,thumbnail)} disabled={submitting}>
+            {submitting ? 'Creating...' : 'Create'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

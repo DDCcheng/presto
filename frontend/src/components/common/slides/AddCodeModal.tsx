@@ -24,10 +24,11 @@ interface AddCodeModalProps {
     fontSize:number
   };
   onClose: () => void;        
-  onSubmit: ( width:number, height :number,code:string,fontSize:number) => void;
+  onSubmit: ( width:number, height :number,code:string,fontSize:number) => void | Promise<void>;
+  submitting?: boolean;
 }
 
-const AddCodeModal=({onClose,onSubmit,initialData}:AddCodeModalProps)=>{
+const AddCodeModal=({onClose,onSubmit,initialData,submitting = false}:AddCodeModalProps)=>{
   const [width,setWidth]=useState(initialData?.width ??30);
   const [height,setHeight]=useState(initialData?.height ??30);
   const [code,SetCode]=useState(initialData?.code ??'');
@@ -64,8 +65,8 @@ const AddCodeModal=({onClose,onSubmit,initialData}:AddCodeModalProps)=>{
             <DialogClose asChild>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
             </DialogClose>
-            <Button onClick={() => onSubmit( width, height ,code,fontSize)}>
-              {initialData ? 'Save' : 'Create'}
+            <Button onClick={() => onSubmit( width, height ,code,fontSize)} disabled={submitting}>
+              {submitting ? 'Saving...' : initialData ? 'Save' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -13,6 +13,7 @@ import AddImageModal from "@/components/common/slides/AddImageModal";
 import AddVideoModal from "@/components/common/slides/AddVideoModal";
 import AddBackgroundModal from "@/components/common/slides/AddBackgroundModal";
 import type { BackgroundStyle } from "../types";
+import { buildVideoSrc, isBlank, normalizeInput } from "@/lib/utils";
 
 //plugin for code recongnising
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -55,7 +56,9 @@ const PresentationPage = () => {
   const [showSlidePanel, setShowSlidePanel] = useState(false);
   const [draggedSlide, setDraggedIndex] = useState<number | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const copiedElement = useRef<SlideElement | null>(null);
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
   //moving part
   const dragInfo = useRef<{
@@ -77,40 +80,104 @@ const PresentationPage = () => {
     startElH: number;
   } | null>(null);
 
-  const saveSlides = async (slides: Slide[]) => {
-    if (!token) return;
-    if(!presentation) return;
-    const data = await getStoreApi(token);
+  const getRequiredValue = (label: string, value: string) => {
+    const trimmedValue = normalizeInput(value);
+    if (isBlank(trimmedValue)) {
+      setError(`${label} cannot be blank`);
+      return null;
+    }
+    return trimmedValue;
+  };
+
+  const getNumberInRange = (label: string, value: number, min: number, max: number) => {
+    if (!Number.isFinite(value)) {
+      setError(`${label} must be a valid number`);
+      return null;
+    }
+    if (value < min || value > max) {
+      setError(`${label} must be between ${min} and ${max}`);
+      return null;
+    }
+    return value;
+  };
+
+  const enqueueSave = async <T,>(task: () => Promise<T>) => {
+    const run = saveQueue.current.then(task, task);
+    saveQueue.current = run.then(() => undefined, () => undefined);
+    return run;
+  };
+
+  const runSaveTask = async <T,>(task: () => Promise<T>, fallbackMessage: string) => {
+    return enqueueSave(async () => {
+      setIsSaving(true);
+      try {
+        return await task();
+      } catch (error) {
+        setError(error instanceof Error ? error.message : fallbackMessage);
+        return null;
+      } finally {
+        setIsSaving(false);
+      }
+    });
+  };
+
+  const buildHistoryEntry = (currentPresentation: Presentation, slides: Slide[]) => {
     const now = Date.now();
     const shouldSaveHistory =
       lastSave.current === 0 || now - lastSave.current > saveInterval;
-    const newHistoryEntry = shouldSaveHistory ? {
+
+    if (!shouldSaveHistory) {
+      return null;
+    }
+
+    lastSave.current = now;
+    return {
       id: crypto.randomUUID(),
       timestamp: now,
       slides: structuredClone(slides),
-      name: presentation?.name || '',
-      description: presentation?.description || '',
-      thumbnail: presentation?.thumbnail || '',
-      defaultBackground: presentation?.defaultBackground,
-    } : null;
-    if (shouldSaveHistory) {
-      lastSave.current = now;
-    }
-    const updated = data.store.presentations.map((p: Presentation) => {
-      if (p.id !== id) return p;
+      name: currentPresentation.name || '',
+      description: currentPresentation.description || '',
+      thumbnail: currentPresentation.thumbnail || '',
+      defaultBackground: currentPresentation.defaultBackground,
+    };
+  };
+
+  const persistPresentationUpdate = async (
+    updater: (currentPresentation: Presentation) => Presentation
+  ) => {
+    if (!token || !id) return null;
+
+    return runSaveTask(async () => {
+      const data = await getStoreApi(token);
+      let updatedPresentation: Presentation | null = null;
+      const updatedStorePresentations = data.store.presentations.map((p: Presentation) => {
+        if (p.id !== id) return p;
+
+        updatedPresentation = updater(p);
+        return updatedPresentation;
+      });
+
+      if (!updatedPresentation) {
+        setError('Presentation not found');
+        navigate('/dashboard');
+        return null;
+      }
+
+      await updateStoreApi(token, { presentations: updatedStorePresentations });
+      setPresentation(updatedPresentation);
+      return updatedPresentation;
+    }, 'Failed to save presentation');
+  };
+
+  const saveSlides = async (slides: Slide[]) => {
+    return persistPresentationUpdate((currentPresentation) => {
+      const historyEntry = buildHistoryEntry(currentPresentation, slides);
       return {
-        ...p,
+        ...currentPresentation,
         slides,
-        history: newHistoryEntry ? [newHistoryEntry, ...(p.history || [])] : (p.history || []),
-      };
-    });
-    await updateStoreApi(token, { presentations: updated });
-    setPresentation(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        slides,
-        history: newHistoryEntry ?[newHistoryEntry,...(prev.history ||[])]:(prev.history||[]),
+        history: historyEntry
+          ? [historyEntry, ...(currentPresentation.history || [])]
+          : (currentPresentation.history || []),
       };
     });
   };
@@ -247,14 +314,11 @@ const PresentationPage = () => {
       if (resizeInfo.current) {
         const deltaX = ((e.clientX - resizeInfo.current.startMouseX) / rect.width) * 100;
         const deltaY = ((e.clientY - resizeInfo.current.startMouseY) / rect.height) * 100;
-
         let newX = resizeInfo.current.startElX;
         let newY = resizeInfo.current.startElY;
         let newW = resizeInfo.current.startElW;
         let newH = resizeInfo.current.startElH;
-
         const corner = resizeInfo.current.corner;
-
         if (corner === 'bottom-right') {
           newW += deltaX;
           newH += deltaY;
@@ -302,31 +366,146 @@ const PresentationPage = () => {
       }
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!slideRef.current || !presentation) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = slideRef.current.getBoundingClientRect();
+      const currentSlide = presentation.slides[currentSlideIndex];
+      if (dragInfo.current) {
+        const deltaX = ((touch.clientX - dragInfo.current.startMouseX) / rect.width) * 100;
+        const deltaY = ((touch.clientY - dragInfo.current.startMouseY) / rect.height) * 100;
+        let newX = dragInfo.current.startElX + deltaX;
+        let newY = dragInfo.current.startElY + deltaY;
+        const el = currentSlide.elements.find(e => e.id === dragInfo.current!.elementId);
+        if (!el) return;
+        newX = Math.max(0, Math.min(newX, 100 - el.width));
+        newY = Math.max(0, Math.min(newY, 100 - el.height));
+        const updatedElements = currentSlide.elements.map(element =>
+          element.id === dragInfo.current!.elementId
+            ? { ...element, x: newX, y: newY }
+            : element
+        ) as SlideElement[];
+        const updatedSlides = presentation.slides.map((s, index) =>
+          index === currentSlideIndex ? { ...s, elements: updatedElements } : s
+        );
+        setPresentation(prev => prev && { ...prev, slides: updatedSlides });
+        return;
+      }
+
+      if (resizeInfo.current) {
+        const deltaX = ((touch.clientX - resizeInfo.current.startMouseX) / rect.width) * 100;
+        const deltaY = ((touch.clientY - resizeInfo.current.startMouseY) / rect.height) * 100;
+        let newX = resizeInfo.current.startElX;
+        let newY = resizeInfo.current.startElY;
+        let newW = resizeInfo.current.startElW;
+        let newH = resizeInfo.current.startElH;
+        const corner = resizeInfo.current.corner;
+
+        if (corner === 'bottom-right') {
+          newW += deltaX;
+          newH += deltaY;
+        } else if (corner === 'bottom-left') {
+          newX += deltaX;
+          newW -= deltaX;
+          newH += deltaY;
+        } else if (corner === 'top-right') {
+          newY += deltaY;
+          newW += deltaX;
+          newH -= deltaY;
+        } else if (corner === 'top-left') {
+          newX += deltaX;
+          newY += deltaY;
+          newW -= deltaX;
+          newH -= deltaY;
+        }
+
+        newW = Math.max(1, newW);
+        newH = Math.max(1, newH);
+        newX = Math.max(0, newX);
+        newY = Math.max(0, newY);
+        if (newX + newW > 100) newW = 100 - newX;
+        if (newY + newH > 100) newH = 100 - newY;
+
+        const updatedElements = currentSlide.elements.map(element =>
+          element.id === resizeInfo.current!.elementId
+            ? { ...element, x: newX, y: newY, width: newW, height: newH }
+            : element
+        ) as SlideElement[];
+        const updatedSlides = presentation.slides.map((s, index) =>
+          index === currentSlideIndex ? { ...s, elements: updatedElements } : s
+        );
+        setPresentation(prev => prev && { ...prev, slides: updatedSlides });
+        return;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!dragInfo.current && !resizeInfo.current) return;
+        dragInfo.current = null;
+        resizeInfo.current = null;
+        if (presentation) {
+          saveSlides(presentation.slides);
+      }
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
     };
   }, [currentSlideIndex, presentation]);
 
-  if (!presentation) return <div>Loading...</div>;
 
+  if (!presentation) return <div>Loading...</div>;
   const handleSlideBackgroundChange = async (bg: BackgroundStyle | '') => {
     if (!presentation) return;
+    if (bg && bg.type === 'solid' && isBlank(bg.color ?? '')) {
+      setError('Slide background color cannot be blank');
+      return;
+    }
+    if (
+      bg &&
+      bg.type === 'gradient' &&
+      (isBlank(bg.gradientStart ?? '') || isBlank(bg.gradientEnd ?? ''))
+    ) {
+      setError('Gradient colors cannot be blank');
+      return;
+    }
+    if (bg && bg.type === 'image' && isBlank(bg.image ?? '')) {
+      setError('Slide background image URL cannot be blank');
+      return;
+    }
     const updatedSlides = presentation.slides.map((s, index) =>
       index === currentSlideIndex ? { ...s, background: bg } : s
     );
     await saveSlides(updatedSlides);
   };
   const handleDefaultBackgroundChange = async (bg: BackgroundStyle) => {
-    if (!token || !presentation) return;
-    const data = await getStoreApi(token);
-    const updated = data.store.presentations.map((p: Presentation) =>
-      p.id === id ? { ...p, defaultBackground: bg } : p
-    );
-    await updateStoreApi(token, { presentations: updated });
-    setPresentation(prev => prev && { ...prev, defaultBackground: bg });
+    if (!presentation) return;
+    if (bg.type === 'solid' && isBlank(bg.color ?? '')) {
+      setError('Default background color cannot be blank');
+      return;
+    }
+    if (bg.type === 'gradient' && (isBlank(bg.gradientStart ?? '') || isBlank(bg.gradientEnd ?? ''))) {
+      setError('Gradient colors cannot be blank');
+      return;
+    }
+    if (bg.type === 'image' && isBlank(bg.image ?? '')) {
+      setError('Default background image URL cannot be blank');
+      return;
+    }
+    await persistPresentationUpdate((currentPresentation) => ({
+      ...currentPresentation,
+      defaultBackground: bg,
+    }));
   };
   const getBackgroundStyle = () => {
     if (!presentation) return;
@@ -341,6 +520,11 @@ const PresentationPage = () => {
   //code element logic
   const handleAddCode = async (width: number, height: number, code: string, fontSize: number) => {
     if (!presentation) return;
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const validFontSize = getNumberInRange('Font size', fontSize, 0.1, 10);
+    const trimmedCode = getRequiredValue('Code', code);
+    if (!trimmedCode || validWidth === null || validHeight === null || validFontSize === null) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
@@ -350,23 +534,30 @@ const PresentationPage = () => {
       x:0,y:0,
       type: 'code',
       language:'c',
-      width: width,
-      height: height,
-      code: code,
-      fontSize: fontSize,
+      width: validWidth,
+      height: validHeight,
+      code: trimmedCode,
+      fontSize: validFontSize,
       zIndex: maxZIndex + 1 //max zindex of current element +1
     };
     const updatedElements = [...currentSlide.elements, newCodeElement];
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setShowAddCode(false)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setShowAddCode(false)
+    }
   };
   const handleEditCode = async (width: number, height: number, code: string, fontSize: number) => {
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const validFontSize = getNumberInRange('Font size', fontSize, 0.1, 10);
+    const trimmedCode = getRequiredValue('Code', code);
+    if (!trimmedCode || validWidth === null || validHeight === null || validFontSize === null) return;
     const EditingCodeElement = {
       ...editingElement,
-      width, height, code, fontSize
+      width: validWidth, height: validHeight, code: trimmedCode, fontSize: validFontSize
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -376,14 +567,20 @@ const PresentationPage = () => {
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setEditingElement(null)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setEditingElement(null)
+    }
 
   };
 
   //video element logic
   const handleAddVideo = async (width: number, height: number, src: string, autoplay: boolean) => {
     if (!presentation) return;
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const trimmedSrc = getRequiredValue('Video URL', src);
+    if (!trimmedSrc || validWidth === null || validHeight === null) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
@@ -392,9 +589,9 @@ const PresentationPage = () => {
       id: crypto.randomUUID(),
       x:0,y:0,
       type: 'video',
-      width: width,
-      height: height,
-      src: src,
+      width: validWidth,
+      height: validHeight,
+      src: trimmedSrc,
       autoplay: autoplay,
       zIndex: maxZIndex + 1 //max zindex of current element +1
     };
@@ -402,13 +599,19 @@ const PresentationPage = () => {
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setShowAddVideo(false)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setShowAddVideo(false)
+    }
   };
   const handleEditVideo = async (width: number, height: number, src: string, autoplay: boolean) => {
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const trimmedSrc = getRequiredValue('Video URL', src);
+    if (!trimmedSrc || validWidth === null || validHeight === null) return;
     const EditingVideoElement = {
       ...editingElement,
-      width, height, src, autoplay
+      width: validWidth, height: validHeight, src: trimmedSrc, autoplay
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -418,13 +621,20 @@ const PresentationPage = () => {
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setEditingElement(null)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setEditingElement(null)
+    }
   };
 
   //image element logic
   const handleAddImage = async (width: number, height: number, src: string, alt: string) => {
     if (!presentation) return;
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const trimmedSrc = getRequiredValue('Image URL', src);
+    const trimmedAlt = getRequiredValue('Alt text', alt);
+    if (!trimmedSrc || !trimmedAlt || validWidth === null || validHeight === null) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
@@ -433,23 +643,30 @@ const PresentationPage = () => {
       id: crypto.randomUUID(),
       x:0,y:0,
       type: 'image',
-      width: width,
-      height: height,
-      src: src,
-      alt: alt,
+      width: validWidth,
+      height: validHeight,
+      src: trimmedSrc,
+      alt: trimmedAlt,
       zIndex: maxZIndex + 1 //max zindex of current element +1
     };
     const updatedElements = [...currentSlide.elements, newImageElement];
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setShowAddImage(false)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setShowAddImage(false)
+    }
   };
   const handleEditImage = async (width: number, height: number, src: string, alt: string, ) => {
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const trimmedSrc = getRequiredValue('Image URL', src);
+    const trimmedAlt = getRequiredValue('Alt text', alt);
+    if (!trimmedSrc || !trimmedAlt || validWidth === null || validHeight === null) return;
     const EditingImageElement = {
       ...editingElement,
-      width, height, src, alt
+      width: validWidth, height: validHeight, src: trimmedSrc, alt: trimmedAlt
     };
     if (!presentation) return;
     const currentSlide = presentation.slides[currentSlideIndex];
@@ -459,14 +676,22 @@ const PresentationPage = () => {
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setEditingElement(null)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setEditingElement(null)
+    }
   };
 
 
   //text element logic
   const handleAddText = async (text: string, color: string, width: number, height: number, fontSize: number, fontFamily: string) => {
     if (!presentation) return;
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const validFontSize = getNumberInRange('Font size', fontSize, 0.1, 10);
+    const trimmedText = getRequiredValue('Text', text);
+    const trimmedColor = getRequiredValue('Text color', color);
+    if (!trimmedText || !trimmedColor || validWidth === null || validHeight === null || validFontSize === null) return;
     const currentSlide = presentation.slides[currentSlideIndex];
     const maxZIndex = currentSlide.elements.length === 0
       ? 0
@@ -475,11 +700,11 @@ const PresentationPage = () => {
       id: crypto.randomUUID(),
       x:0,y:0,
       type: 'text',
-      width: width,
-      height: height,
-      text: text,
-      color: color,
-      fontSize: fontSize,
+      width: validWidth,
+      height: validHeight,
+      text: trimmedText,
+      color: trimmedColor,
+      fontSize: validFontSize,
       fontFamily: fontFamily,
       zIndex: maxZIndex + 1 //max zindex of current element +1
     };
@@ -487,14 +712,22 @@ const PresentationPage = () => {
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setShowAddText(false)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setShowAddText(false)
+    }
   };
   const handleEditText = async (text: string, color: string, width: number, height: number, fontSize: number, fontFamily: string) => {
     if (!presentation || !editingElement) return;
+    const validWidth = getNumberInRange('Width', width, 1, 100);
+    const validHeight = getNumberInRange('Height', height, 1, 100);
+    const validFontSize = getNumberInRange('Font size', fontSize, 0.1, 10);
+    const trimmedText = getRequiredValue('Text', text);
+    const trimmedColor = getRequiredValue('Text color', color);
+    if (!trimmedText || !trimmedColor || validWidth === null || validHeight === null || validFontSize === null) return;
     const updatedElement = {
       ...editingElement,
-      width, height, text, color, fontSize, fontFamily
+      width: validWidth, height: validHeight, text: trimmedText, color: trimmedColor, fontSize: validFontSize, fontFamily
     };
     const currentSlide = presentation.slides[currentSlideIndex];
     const updatedElements = currentSlide.elements.map((el) =>
@@ -503,8 +736,10 @@ const PresentationPage = () => {
     const updatedSlides = presentation.slides.map((s, index) => {
       return index === currentSlideIndex ? { ...s, elements: updatedElements } : s;
     })
-    await saveSlides(updatedSlides);
-    setEditingElement(null)
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setEditingElement(null)
+    }
   };
  
   const handleAddSlide = async () => {
@@ -515,8 +750,10 @@ const PresentationPage = () => {
       transition: "none",
     };
     const updatedSlides = [...presentation.slides, newSlide];
-    await saveSlides(updatedSlides);
-    setCurrentSlideIndex(updatedSlides.length - 1);
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setCurrentSlideIndex(updatedSlides.length - 1);
+    }
   };
 
   const handleDeleteSlide = async () => {
@@ -527,33 +764,42 @@ const PresentationPage = () => {
     const updatedSlides = presentation.slides.filter(
       (_, index) => index !== currentSlideIndex
     );
-    await saveSlides(updatedSlides);
-    setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    const savedPresentation = await saveSlides(updatedSlides);
+    if (savedPresentation) {
+      setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    }
   };
 
   const handleDeletePresentation = async () => {
     if (!token) return;
-    const data = await getStoreApi(token);
-    const updated = data.store.presentations.filter(
-      (p: Presentation) => p.id !== id
-    );
-    await updateStoreApi(token, { presentations: updated });
-    navigate("/dashboard");
+    const deleted = await runSaveTask(async () => {
+      const data = await getStoreApi(token);
+      const updated = data.store.presentations.filter(
+        (p: Presentation) => p.id !== id
+      );
+      await updateStoreApi(token, { presentations: updated });
+      return true;
+    }, 'Failed to delete presentation');
+
+    if (deleted) {
+      navigate("/dashboard");
+    }
   };
 
   const handleTitleSave = async () => {
-    if (!token) return;
+    const trimmedTitle = getRequiredValue('Title', newTitle);
+    const trimmedThumbnail = getRequiredValue('Thumbnail URL', newThumbnail);
+    if (!trimmedTitle || !trimmedThumbnail) return;
 
-    const data = await getStoreApi(token);
+    const updatedPresentation = await persistPresentationUpdate((currentPresentation) => ({
+      ...currentPresentation,
+      name: trimmedTitle,
+      thumbnail: trimmedThumbnail,
+    }));
 
-    const updated = data.store.presentations.map((p: Presentation) =>
-      p.id === id ? { ...p, name: newTitle,thumbnail:newThumbnail } : p
-    );
-
-    await updateStoreApi(token, { presentations: updated });
-
-    setPresentation((prev) => prev && { ...prev, name: newTitle,thumbnail:newThumbnail });
-    setEditingTitle(false);
+    if (updatedPresentation) {
+      setEditingTitle(false);
+    }
   };
 
   const getSlideBackgroundStyle = (s: Slide) => {
@@ -580,23 +826,31 @@ const PresentationPage = () => {
   const handleRestoreHistory = async (history: PresentationHistory) => {
     if (!presentation || !token) return;
 
-    const updatedSlides = history.slides;
-
-    await saveSlides(updatedSlides);
-
-    setPresentation(prev =>
-      prev && {
-        ...prev,
+    const restoredPresentation = await persistPresentationUpdate((currentPresentation) => {
+      const historyEntry = buildHistoryEntry(currentPresentation, history.slides);
+      return {
+        ...currentPresentation,
         slides: history.slides,
         name: history.name,
         description: history.description,
         thumbnail: history.thumbnail,
         defaultBackground: history.defaultBackground,
-      }
-    );
+        history: historyEntry
+          ? [historyEntry, ...(currentPresentation.history || [])]
+          : (currentPresentation.history || []),
+      };
+    });
 
-    setCurrentSlideIndex(0);
-    setShowHistory(false);
+    if (restoredPresentation) {
+      setCurrentSlideIndex(0);
+      setShowHistory(false);
+    }
+  };
+
+  const openTitleEditor = () => {
+    setNewTitle(presentation.name);
+    setNewThumbnail(presentation.thumbnail || '');
+    setEditingTitle(true);
   };
   
 
@@ -606,12 +860,12 @@ const PresentationPage = () => {
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap z-50">
           <Button onClick={() => navigate("/dashboard")}>Back</Button>
           <h2 className="text-xl font-semibold">{presentation.name}</h2>
-          <Button size="sm" variant="outline" onClick={() => setEditingTitle(true)}>
+          <Button size="sm" variant="outline" onClick={openTitleEditor} disabled={isSaving}>
             Edit
           </Button>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <Button onClick={() => setShowHistory(true)}>
+          <Button onClick={() => setShowHistory(true)} disabled={isSaving}>
             History
           </Button>
           <Button onClick={() => window.open(`/preview/${id}`, "_blank")}>
@@ -620,6 +874,7 @@ const PresentationPage = () => {
           <Button
             variant="destructive"
             onClick={() => setShowDeleteConfirm(true)}
+            disabled={isSaving}
           >
             Delete
           </Button>
@@ -627,7 +882,12 @@ const PresentationPage = () => {
       </div>
 
       <div className="relative border w-full aspect-video max-h-[55vh] sm:max-h-none flex items-center justify-center bg-gray-100 overflow-hidden">
-        <div className="absolute inset-0" onClick={() => setSelectedElementId(null)} ref={slideRef} style={getBackgroundStyle()}>
+        <div
+          className="absolute inset-0"
+          onClick={() => setSelectedElementId(null)}
+          ref={slideRef}
+          style={{ ...getBackgroundStyle(), touchAction: 'none' }}
+        >
           {slide.elements.map((el) => (
             <div
               key={el.id}
@@ -639,6 +899,7 @@ const PresentationPage = () => {
                 height: `${el.height}%`,
                 zIndex: el.zIndex,
                 border: selectedElementId === el.id ? '2px solid blue' : 'none',
+                touchAction: 'none',
               }}
               onContextMenu={async (e) => {
                 e.preventDefault();
@@ -663,6 +924,19 @@ const PresentationPage = () => {
                   elementId: el.id,
                   startMouseX: e.clientX,
                   startMouseY: e.clientY,
+                  startElX: el.x,
+                  startElY: el.y,
+                };
+              }}
+              onTouchStart={(e)=>{
+                e.stopPropagation();
+                e.preventDefault();
+                if(selectedElementId!==el.id)return ;
+                const touch=e.touches[0];
+                dragInfo.current = {
+                  elementId: el.id,
+                  startMouseX: touch.clientX,
+                  startMouseY: touch.clientY,
                   startElX: el.x,
                   startElY: el.y,
                 };
@@ -692,7 +966,7 @@ const PresentationPage = () => {
 
               {el.type === 'video' && (
                 <iframe
-                  src={`${el.src}${el.autoplay ? '?autoplay=1' : ''}`}
+                  src={buildVideoSrc(el.src, el.autoplay)}
                   className="w-full h-full"
                   allow="autoplay"
                   title="video"
@@ -725,12 +999,13 @@ const PresentationPage = () => {
                   <div
                     style={{
                       position: "absolute",
-                      top: -2.5,
-                      left: -2.5,
-                      width: 5,
-                      height: 5,
+                      top: window.innerWidth < 640 ? -6 : -2.5,
+                      left: window.innerWidth < 640 ? -6 : -2.5,
+                      width: window.innerWidth < 640 ? 12 : 5,
+                      height: window.innerWidth < 640 ? 12 : 5,
                       backgroundColor: "black",
-                      cursor: "nwse-resize"
+                      cursor: "nwse-resize",
+                      touchAction: 'none',
                     }}
                     onMouseDown={(e) => {
                       e.stopPropagation();
@@ -747,16 +1022,33 @@ const PresentationPage = () => {
                         startElW: el.width,
                       };
                     }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const touch=e.touches[0];
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'top-left',
+                        startMouseX: touch.clientX,
+                        startMouseY: touch.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
+                    }}
                   ></div>
                   <div
                     style={{
                       position: "absolute",
-                      top: -2.5,
-                      right: -2.5,
-                      width: 5,
-                      height: 5,
+                      top: window.innerWidth < 640 ? -6 : -2.5,
+                      right: window.innerWidth < 640 ? -6 : -2.5,
+                      width: window.innerWidth < 640 ? 12 : 5,
+                      height: window.innerWidth < 640 ? 12 : 5,
                       backgroundColor: "black",
-                      cursor: "nwse-resize"
+                      cursor: "nwse-resize",
+                      touchAction: 'none',
                     }}
                     onMouseDown={(e) => {
                       e.stopPropagation();
@@ -773,17 +1065,34 @@ const PresentationPage = () => {
                         startElW: el.width,
                       };
                     }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const touch=e.touches[0];
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'top-right',
+                        startMouseX: touch.clientX,
+                        startMouseY: touch.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
+                    }}
                   ></div>
                   <div
                     style={
                       {
                         position: "absolute",
-                        bottom: -2.5,
-                        right: -2.5,
-                        width: 5,
-                        height: 5,
+                        bottom: window.innerWidth < 640 ? -6 : -2.5,
+                        right: window.innerWidth < 640 ? -6 : -2.5,
+                        width: window.innerWidth < 640 ? 12 : 5,
+                        height: window.innerWidth < 640 ? 12 : 5,
                         backgroundColor: "black",
-                        cursor: "nwse-resize"
+                        cursor: "nwse-resize",
+                        touchAction: 'none',
                       }}
                     onMouseDown={(e) => {
                       e.stopPropagation();
@@ -800,17 +1109,34 @@ const PresentationPage = () => {
                         startElW: el.width,
                       };
                     }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const touch=e.touches[0];
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'bottom-right',
+                        startMouseX: touch.clientX,
+                        startMouseY: touch.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
+                    }}
                   ></div>
                   <div
                     style={
                       {
                         position: "absolute",
-                        bottom: -2.5,
-                        left: -2.5,
-                        width: 5,
-                        height: 5,
+                        bottom: window.innerWidth < 640 ? -6 : -2.5,
+                        left: window.innerWidth < 640 ? -6 : -2.5,
+                        width: window.innerWidth < 640 ? 12 : 5,
+                        height: window.innerWidth < 640 ? 12 : 5,
                         backgroundColor: "black",
-                        cursor: "nwse-resize"
+                        cursor: "nwse-resize",
+                        touchAction: 'none',
                       }}
                     onMouseDown={(e) => {
                       e.stopPropagation();
@@ -821,6 +1147,22 @@ const PresentationPage = () => {
                         corner: 'bottom-left',
                         startMouseX: e.clientX,
                         startMouseY: e.clientY,
+                        startElX: el.x,
+                        startElY: el.y,
+                        startElH: el.height,
+                        startElW: el.width,
+                      };
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const touch=e.touches[0];
+                      if (selectedElementId !== el.id) return;
+                      resizeInfo.current = {
+                        elementId: el.id,
+                        corner: 'bottom-left',
+                        startMouseX: touch.clientX,
+                        startMouseY: touch.clientY,
                         startElX: el.x,
                         startElY: el.y,
                         startElH: el.height,
@@ -870,12 +1212,12 @@ const PresentationPage = () => {
         <div className="flex gap-2 flex-wrap pb-1 sm:flex-wrap">
           <Button onClick={() => setShowSlidePanel(true)}>Slide Panel</Button>
           <Button onClick={handleAddSlide}>+ Add Slide</Button>
-          <Button onClick={() => { setShowAddText(true) }}>+ Add Text</Button>
-          <Button onClick={() => { setShowAddImage(true) }}>+ Add image</Button>
-          <Button onClick={() => { setShowAddVideo(true) }}>+ Add Video</Button>
-          <Button onClick={() => { setShowAddCode(true) }}>+ Add Code</Button>
-          <Button onClick={() => { setShowBackground(true) }}>+ Add background</Button>
-          <Button variant="destructive" onClick={handleDeleteSlide}>
+          <Button onClick={() => { setShowAddText(true) }} disabled={isSaving}>+ Add Text</Button>
+          <Button onClick={() => { setShowAddImage(true) }} disabled={isSaving}>+ Add image</Button>
+          <Button onClick={() => { setShowAddVideo(true) }} disabled={isSaving}>+ Add Video</Button>
+          <Button onClick={() => { setShowAddCode(true) }} disabled={isSaving}>+ Add Code</Button>
+          <Button onClick={() => { setShowBackground(true) }} disabled={isSaving}>+ Add background</Button>
+          <Button variant="destructive" onClick={handleDeleteSlide} disabled={isSaving}>
           Delete Slide
           </Button>
 
@@ -906,6 +1248,7 @@ const PresentationPage = () => {
         <AddTextModal
           onClose={() => setShowAddText(false)}
           onSubmit={handleAddText}
+          submitting={isSaving}
         />
       )}
 
@@ -914,6 +1257,7 @@ const PresentationPage = () => {
           onClose={() => setEditingElement(null)}
           onSubmit={handleEditText}
           initialData={editingElement}
+          submitting={isSaving}
         />
       )}
 
@@ -921,6 +1265,7 @@ const PresentationPage = () => {
         <AddImageModal
           onClose={() => setShowAddImage(false)}
           onSubmit={handleAddImage}
+          submitting={isSaving}
         />
       )}
       {editingElement && editingElement.type === 'image' && (
@@ -928,6 +1273,7 @@ const PresentationPage = () => {
           onClose={() => setEditingElement(null)}
           onSubmit={handleEditImage}
           initialData={editingElement}
+          submitting={isSaving}
         />
       )}
 
@@ -935,6 +1281,7 @@ const PresentationPage = () => {
         <AddVideoModal
           onClose={() => setShowAddVideo(false)}
           onSubmit={handleAddVideo}
+          submitting={isSaving}
         />
       )}
       {editingElement && editingElement.type === 'video' && (
@@ -942,6 +1289,7 @@ const PresentationPage = () => {
           onClose={() => setEditingElement(null)}
           onSubmit={handleEditVideo}
           initialData={editingElement}
+          submitting={isSaving}
         />
       )}
 
@@ -952,6 +1300,7 @@ const PresentationPage = () => {
           defaultBackground={presentation.defaultBackground}
           onSlideBackgroundChange={handleSlideBackgroundChange}
           onDefaultBackgroundChange={handleDefaultBackgroundChange}
+          submitting={isSaving}
         />
       )}
 
@@ -959,6 +1308,7 @@ const PresentationPage = () => {
         <AddCodeModal
           onClose={() => setShowAddCode(false)}
           onSubmit={handleAddCode}
+          submitting={isSaving}
         />
       )}
       {editingElement && editingElement.type === 'code' && (
@@ -966,6 +1316,7 @@ const PresentationPage = () => {
           onClose={() => setEditingElement(null)}
           onSubmit={handleEditCode}
           initialData={editingElement}
+          submitting={isSaving}
         />
       )}
 
@@ -974,8 +1325,10 @@ const PresentationPage = () => {
           <div className="bg-white p-6 rounded shadow">
             <p className="mb-4">Are you sure?</p>
             <div className="flex gap-3">
-              <Button onClick={handleDeletePresentation}>Yes</Button>
-              <Button onClick={() => setShowDeleteConfirm(false)}>
+              <Button onClick={handleDeletePresentation} disabled={isSaving}>
+                {isSaving ? 'Deleting...' : 'Yes'}
+              </Button>
+              <Button onClick={() => setShowDeleteConfirm(false)} disabled={isSaving}>
                 No
               </Button>
             </div>
@@ -999,8 +1352,10 @@ const PresentationPage = () => {
               placeholder="Thumbnail URL"
             />
             <div className="flex gap-3">
-              <Button onClick={handleTitleSave}>Save</Button>
-              <Button onClick={() => setEditingTitle(false)}>
+              <Button onClick={handleTitleSave} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+              <Button onClick={() => setEditingTitle(false)} disabled={isSaving}>
                 Cancel
               </Button>
             </div>
